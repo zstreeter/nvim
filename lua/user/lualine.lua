@@ -42,6 +42,8 @@ function M.config()
     end,
   }
 
+  require("transparent").clear_prefix "lualine"
+
   require("lualine").setup {
     options = {
       -- component_separators = { left = "", right = "" },

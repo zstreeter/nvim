@@ -4,7 +4,6 @@ local M = {
 }
 
 function M.config()
-
   local wk = require "which-key"
   wk.register {
     ["<leader>e"] = { "<cmd>NvimTreeToggle<CR>", "Explorer" },
@@ -27,6 +26,8 @@ function M.config()
   end
 
   local icons = require "user.icons"
+
+  require("transparent").clear_prefix "NvimTree"
 
   require("nvim-tree").setup {
     on_attach = my_on_attach,
