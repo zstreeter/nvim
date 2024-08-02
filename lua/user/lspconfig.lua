@@ -116,6 +116,7 @@ function M.config()
   local icons = require "user.icons"
 
   local servers = {
+    "clangd",
     "lua_ls",
     "cssls",
     "html",
