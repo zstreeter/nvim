@@ -86,6 +86,16 @@ function M.config()
       desc = "Quit",
     },
     {
+      "<leader>w",
+      "<cmd>confirm w<CR>",
+      desc = "Save",
+    },
+    {
+      "<leader>k",
+      "<cmd>bdelete<CR>",
+      desc = "Kill Buffer",
+    },
+    {
       "<leader>h",
       "<cmd>nohlsearch<CR>",
       desc = "NOHL",
@@ -100,12 +110,12 @@ function M.config()
         color = "green",
       },
     },
-    {
-      "<leader>w",
-      "<cmd>lua vim.wo.wrap = not vim.wo.wrap<CR>",
-      desc = "Wrap",
-      hidden = true,
-    },
+    -- {
+    --   "<leader>w",
+    --   "<cmd>lua vim.wo.wrap = not vim.wo.wrap<CR>",
+    --   desc = "Wrap",
+    --   hidden = true,
+    -- },
     {
       "<leader>v",
       "<cmd>vsplit<CR>",
