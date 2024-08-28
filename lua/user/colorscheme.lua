@@ -37,9 +37,16 @@ local M = {
   integrations = {
     cmp = true,
     gitsigns = true,
-    nvimtree = true,
+    neotree = true,
     treesitter = true,
+    telescope = true,
     notify = false,
+    neotest = true,
+    noice = true,
+    semantic_tokens = true,
+    treesitter_context = true,
+    which_key = true,
+    navic = { enabled = true, custom_bg = "lualine" },
     mini = {
       enabled = true,
       indentscope_color = "",
