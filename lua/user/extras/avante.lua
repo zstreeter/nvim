@@ -14,6 +14,23 @@ local M = {
         file_types = { "markdown", "Avante" },
       },
     },
+    {
+      -- support for image pasting
+      "HakonHarnes/img-clip.nvim",
+      event = "VeryLazy",
+      opts = {
+        -- recommended settings
+        default = {
+          embed_image_as_base64 = false,
+          prompt_for_file_name = false,
+          drag_and_drop = {
+            insert_mode = true,
+          },
+          -- required for Windows users
+          use_absolute_path = true,
+        },
+      },
+    },
   },
 }
 
@@ -82,7 +99,7 @@ function M.config()
     hints = { enabled = true },
     windows = {
       wrap = true, -- similar to vim.o.wrap
-      width = 30, -- default % based on available width
+      width = 45, -- default % based on available width
       sidebar_header = {
         align = "center", -- left, center, right for title
         rounded = true,
