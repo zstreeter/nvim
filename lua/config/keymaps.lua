@@ -7,6 +7,8 @@ vim.g.maplocalleader = " "
 
 keymap("n", "<C-i>", "<C-i>", opts)
 
+keymap("n", "<leader>w", "<cmd>w<cr>", opts)
+
 -- Better window navigation
 keymap("n", "<m-h>", "<C-w>h", opts)
 keymap("n", "<m-j>", "<C-w>j", opts)
