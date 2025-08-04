@@ -1,5 +1,5 @@
 return {
-	"git@github.com:ChristianChiarulli/claudecode.nvim.git",
+	"git@github.com:coder/claudecode.nvim.git",
 	config = true,
 	branch = "terminal-optional",
 	opts = {
