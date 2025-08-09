@@ -3,8 +3,9 @@ local M = {
 }
 
 function M.config()
-	return require("transparent").setup({ -- Optional, you don't have to run setup.
+	require("transparent").setup({
 		groups = { -- table: default groups
+			-- ... your other default groups are fine ...
 			"Normal",
 			"NormalNC",
 			"Comment",
@@ -32,6 +33,12 @@ function M.config()
 			"EndOfBuffer",
 		},
 		extra_groups = {
+			-- Add these groups for the popup menu! 👇
+			"Pmenu",
+			"PmenuSbar",
+			"FloatBorder",
+
+			-- Your existing extra groups
 			"NormalFloat",
 			"NvimTreeNormal",
 			"Fidget",
