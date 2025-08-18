@@ -42,14 +42,15 @@ return {
 					-- Set backgrounds with alpha values (blend with terminal background)
 					Normal = { bg = "NONE", ctermbg = "NONE" },
 					NormalNC = { bg = "NONE", ctermbg = "NONE" },
-					NormalFloat = { bg = colors.base, blend = 80 }, -- 80% opacity
-					FloatBorder = { bg = colors.base, blend = 80 },
-					Pmenu = { bg = colors.base, blend = 85 }, -- Popup menu with 85% opacity
-					PmenuSel = { bg = colors.surface0, blend = 85 },
-					-- Telescope with transparency
+					-- FIXED: Removed blend values for floating windows
+					NormalFloat = { bg = colors.base }, -- Solid background, no blend
+					FloatBorder = { bg = colors.base, fg = colors.blue }, -- Solid background
+					Pmenu = { bg = colors.base }, -- Solid popup menu background
+					PmenuSel = { bg = colors.surface0 }, -- Solid selected item background
+					-- Telescope with transparency (kept as you might want this)
 					TelescopeNormal = { bg = colors.base, blend = 90 },
 					TelescopeBorder = { bg = colors.base, blend = 90 },
-					-- Neo-tree with slight transparency
+					-- Neo-tree with slight transparency (kept as sidebar)
 					NeoTreeNormal = { bg = colors.mantle, blend = 95 },
 					NeoTreeNormalNC = { bg = colors.mantle, blend = 95 },
 					-- Statusline and tabline
@@ -83,18 +84,16 @@ return {
 		-- load the colorscheme here
 		vim.cmd([[colorscheme catppuccin]])
 
-		-- Additional transparency settings with alpha values
-		-- This works if your terminal supports true transparency
+		-- Additional transparency settings - FIXED
 		vim.api.nvim_set_hl(0, "Normal", { bg = "NONE", ctermbg = "NONE" })
-		vim.api.nvim_set_hl(0, "NormalFloat", { bg = "NONE", ctermbg = "NONE" })
 		vim.api.nvim_set_hl(0, "NormalNC", { bg = "NONE", ctermbg = "NONE" })
 
-		-- If you want to set specific alpha values for certain highlights
-		-- and your terminal supports it (like Kitty, Alacritty with blur)
+		-- FIXED: Removed the problematic blend settings for floating windows
 		if vim.fn.has("nvim-0.10") == 1 then
-			vim.api.nvim_set_hl(0, "FloatBorder", { bg = "NONE", blend = 80 })
-			vim.api.nvim_set_hl(0, "Pmenu", { bg = "NONE", blend = 85 })
-			vim.api.nvim_set_hl(0, "TelescopeNormal", { bg = "NONE", blend = 90 })
+			-- Keep these with solid backgrounds for readability
+			vim.api.nvim_set_hl(0, "NormalFloat", { bg = "#1e1e2e" }) -- Solid background
+			vim.api.nvim_set_hl(0, "FloatBorder", { bg = "#1e1e2e", fg = "#89b4fa" }) -- Solid background
+			vim.api.nvim_set_hl(0, "Pmenu", { bg = "#1e1e2e" }) -- Solid background
 		end
 	end,
 }
