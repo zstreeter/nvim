@@ -30,7 +30,6 @@ return {
 				"css_variables",
 				"cssmodules_ls",
 				"dockerls",
-				"grammarly",
 				"jsonls",
 				"lemminx",
 				"marksman",
