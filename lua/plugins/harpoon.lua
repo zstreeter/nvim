@@ -7,10 +7,10 @@ local M = {
 
 		harpoon:setup()
 
-		vim.keymap.set("n", "<S-m>", function()
+		vim.keymap.set("n", "m", function()
 			require("plugins.harpoon").mark_file()
 		end)
-		vim.keymap.set("n", "<TAB>", function()
+		vim.keymap.set("n", "<S-m>", function()
 			harpoon.ui:toggle_quick_menu(harpoon:list())
 		end)
 	end,
