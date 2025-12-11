@@ -1,14 +1,13 @@
-local M = {
-  "pimalaya/himalaya-vim",
-  cmd = { "Himalaya" },
+return {
+	"pimalaya/himalaya-vim",
+	cmd = { "Himalaya" },
+	keys = {
+		{ "<leader>mo", "<cmd>Himalaya<cr>", desc = "Open inbox" },
+		{ "<leader>mc", "<cmd>HimalayaWrite<cr>", desc = "Compose email" },
+		{ "<leader>mf", "<cmd>HimalayaFolders<cr>", desc = "Switch folder" },
+	},
+	config = function()
+		vim.g.himalaya_folder_picker = "telescope"
+		vim.g.himalaya_folder_picker_telescope_preview = 1
+	end,
 }
-
-function M.config()
-  -- Path to himalaya binary (if not in PATH)
-  -- vim.g.himalaya_executable = "himalaya"
-
-  -- Folder picker: 'native', 'fzf', 'fzflua', or 'telescope'
-  vim.g.himalaya_folder_picker = "telescope"
-end
-
-return M
