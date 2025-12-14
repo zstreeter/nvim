@@ -48,7 +48,7 @@ return {
 			{ "<leader>e", group = "explorer" },
 			{ "<leader>f", group = "find" },
 			{ "<leader>l", group = "LSP" },
-            { "<leader>m", group = "mail" },
+			{ "<leader>m", group = "mail" },
 			{ "<leader>r", group = "rename/restart" },
 			{ "<leader>D", desc = "Buffer diagnostics" },
 			{ "<leader>d", desc = "Line diagnostics" },
