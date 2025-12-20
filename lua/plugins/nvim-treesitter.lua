@@ -6,7 +6,11 @@ return {
 		"nvim-treesitter/nvim-treesitter-textobjects",
 	},
 	config = function()
-		local treesitter = require("nvim-treesitter.configs")
+		-- CRASH FIX: Use pcall so Neovim doesn't die if the plugin is missing
+		local status, treesitter = pcall(require, "nvim-treesitter.configs")
+		if not status then
+			return -- Exit silently if not found, allowing lazy.nvim to install it
+		end
 
 		treesitter.setup({
 			-- enable syntax highlighting
