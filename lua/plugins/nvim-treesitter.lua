@@ -13,7 +13,6 @@ return {
     if not status then
       return -- Exit silently if not found, allowing lazy.nvim to install it
     end
-
     treesitter.setup({
       highlight = {
         enable = true,
