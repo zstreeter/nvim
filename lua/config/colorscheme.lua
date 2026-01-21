@@ -12,7 +12,7 @@ local function get_colorscheme()
   end
 
   -- 2. Fallback for non-Omarchy systems
-  return "catppuccin"
+  return "kanagawa"
 end
 
 local colorscheme = get_colorscheme()

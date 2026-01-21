@@ -5,46 +5,22 @@ return {
 		"mason-org/mason-lspconfig.nvim",
 	},
 	config = function()
-		-- Enable mason
+		local servers = require("config.servers")
+
 		require("mason").setup({
 			ui = {
 				border = "rounded",
 			},
 		})
 
-		-- require("mason-lspconfig").setup()
+		-- Combine LSP servers with formatters/linters for installation
+		local ensure_installed = vim.list_extend(
+			vim.list_extend({}, servers.lsp_servers),
+			servers.formatters_and_linters
+		)
 
-		-- Install formatters, and linters
 		require("mason-tool-installer").setup({
-			ensure_installed = {
-				"ts_ls",
-				"lua_ls",
-				"tailwindcss",
-				"eslint",
-				"rust_analyzer",
-				"gopls",
-				"html",
-				"cssls",
-				"basedpyright",
-				"bashls",
-				"css_variables",
-				"cssmodules_ls",
-				"dockerls",
-				"jsonls",
-				"lemminx",
-				"marksman",
-				"nginx_language_server",
-				"taplo",
-				"yamlls",
-
-				"prettier", -- JavaScript/TypeScript formatter
-				"stylua", -- Lua formatter
-				"black", -- Python formatter
-				"isort", -- Python import organizer
-				"pylint", -- Python linter
-				"shellcheck", -- Shell script linter
-				"shfmt", -- Shell script formatter
-			},
+			ensure_installed = ensure_installed,
 		})
 	end,
 }

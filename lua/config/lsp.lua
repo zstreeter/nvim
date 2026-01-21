@@ -1,26 +1,6 @@
--- Enable LSP servers
-vim.lsp.enable({
-	"ts_ls",
-	"lua_ls",
-	"tailwindcss",
-	"eslint",
-	"rust_analyzer",
-	"gopls",
-	"html",
-	"cssls",
-	"basedpyright",
-	"bashls",
-	"css_variables",
-	"cssmodules_ls",
-	"dockerls",
-	"grammarly",
-	"jsonls",
-	"lemminx",
-	"marksman",
-	"nginx_language_server",
-	"taplo",
-	"yamlls",
-})
+-- Enable LSP servers (list defined in config/servers.lua)
+local servers = require("config.servers")
+vim.lsp.enable(servers.lsp_servers)
 
 -- Configure diagnostic display with custom signs
 vim.diagnostic.config({
@@ -78,19 +58,19 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
 		-- set keybinds
 		opts.desc = "Show LSP references"
-		keymap.set("n", "gr", "<cmd>FzfLua lsp_references<CR>", opts)
+		keymap.set("n", "gr", function() Snacks.picker.lsp_references() end, opts)
 
 		opts.desc = "Go to declaration"
 		keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
 
 		opts.desc = "Show LSP definitions"
-		keymap.set("n", "gd", "<cmd>FzfLua lsp_definitions<CR>", opts)
+		keymap.set("n", "gd", function() Snacks.picker.lsp_definitions() end, opts)
 
 		opts.desc = "Show LSP implementations"
-		keymap.set("n", "gi", "<cmd>FzfLua lsp_implementations<CR>", opts)
+		keymap.set("n", "gi", function() Snacks.picker.lsp_implementations() end, opts)
 
 		opts.desc = "Show LSP type definitions"
-		keymap.set("n", "gt", "<cmd>FzfLua lsp_typedefs<CR>", opts)
+		keymap.set("n", "gt", function() Snacks.picker.lsp_type_definitions() end, opts)
 
 		opts.desc = "See available code actions"
 		keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
@@ -99,7 +79,7 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		keymap.set("n", "<leader>lr", vim.lsp.buf.rename, opts)
 
 		opts.desc = "Show buffer diagnostics"
-		keymap.set("n", "<leader>D", "<cmd>FzfLua diagnostics_document<CR>", opts)
+		keymap.set("n", "<leader>D", function() Snacks.picker.diagnostics_buffer() end, opts)
 
 		opts.desc = "Show line diagnostics"
 		keymap.set("n", "gl", vim.diagnostic.open_float, opts)
