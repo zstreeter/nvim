@@ -60,5 +60,11 @@ return {
       desc = "Sidekick Claude Toggle",
       mode = { "n", "v" },
     },
+    {
+      "<leader>ao",
+      function() require("sidekick.cli").toggle({ name = "opencode", focus = true }) end,
+      desc = "Sidekick opencode Toggle",
+      mode = { "n", "v" },
+    },
   },
 }
