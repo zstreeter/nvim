@@ -1,10 +1,10 @@
 local zotero_dir = vim.fn.expand("~/Zotero/Zotero-Library")
 
-local function open_in_zathura(path)
+local function open_in_sioyek(path)
 	if not path or path == "" then
 		return
 	end
-	vim.fn.jobstart({ "zathura", path }, { detach = true })
+	vim.fn.jobstart({ "sioyek", path }, { detach = true })
 end
 
 local function pick_pdf()
@@ -25,17 +25,17 @@ local function pick_pdf()
 				return
 			end
 			local path = item._path or vim.fs.joinpath(item.cwd or zotero_dir, item.file or item.text)
-			open_in_zathura(path)
+			open_in_sioyek(path)
 		end,
 	})
 end
 
-vim.api.nvim_create_user_command("ZoteroPdf", pick_pdf, { desc = "Fuzzy find Zotero PDFs and open in zathura" })
+vim.api.nvim_create_user_command("ZoteroPdf", pick_pdf, { desc = "Fuzzy find Zotero PDFs and open in sioyek" })
 
 return {
 	"folke/snacks.nvim",
 	optional = true,
 	keys = {
-		{ "<leader>fz", pick_pdf, desc = "Find Zotero PDF (zathura)" },
+		{ "<leader>fz", pick_pdf, desc = "Find Zotero PDF (sioyek)" },
 	},
 }
