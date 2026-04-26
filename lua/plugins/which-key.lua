@@ -42,20 +42,22 @@ return {
 		local wk = require("which-key")
 		wk.setup(opts)
 
-		-- Document existing key chains using new spec format
+		-- Group labels — lets which-key show a category title for each prefix.
+		-- Direct (single-key) bindings get their description from the keymap callsite,
+		-- so they don't need to be repeated here.
 		wk.add({
+			{ "<leader>a", group = "AI" },
+			{ "<leader>b", group = "buffer" },
 			{ "<leader>c", group = "code" },
-			{ "<leader>e", group = "explorer" },
+			{ "<leader>d", group = "diagnostics" },
 			{ "<leader>f", group = "find" },
+			{ "<leader>g", group = "git" },
 			{ "<leader>l", group = "LSP" },
 			{ "<leader>m", group = "mail" },
+			{ "<leader>o", group = "obsidian" },
 			{ "<leader>r", group = "rename/restart" },
-			{ "<leader>D", desc = "Buffer diagnostics" },
-			{ "<leader>d", desc = "Line diagnostics" },
-			-- { "<leader>fg", group = "git" },
-			-- { "<leader>n", group = "numbers" },
-			-- { "<leader>s", group = "split" },
-			-- { "<leader>t", group = "tab" },
+			{ "<leader>s", group = "search/symbols" },
+			{ "<leader>u", group = "ui/toggles" },
 		})
 	end,
 }

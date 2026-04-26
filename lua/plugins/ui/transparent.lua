@@ -1,11 +1,8 @@
-local M = {
+return {
 	"xiyaowong/transparent.nvim",
-}
-
-function M.config()
-	require("transparent").setup({
-		groups = { -- table: default groups
-			-- ... your other default groups are fine ...
+	event = "VeryLazy",
+	opts = {
+		groups = {
 			"Normal",
 			"NormalNC",
 			"Comment",
@@ -33,12 +30,9 @@ function M.config()
 			"EndOfBuffer",
 		},
 		extra_groups = {
-			-- Add these groups for the popup menu! 👇
 			"Pmenu",
 			"PmenuSbar",
 			"FloatBorder",
-
-			-- Your existing extra groups
 			"NormalFloat",
 			"NvimTreeNormal",
 			"Fidget",
@@ -75,11 +69,8 @@ function M.config()
 			"NeoTreeEndOfBuffer",
 			"NeoTreeRootName",
 			"NeoTreeSymbolicLinkTarget",
-			"NeoTreeTitleBar",
 			"NeoTreeWindowsHidden",
 		},
-		exclude_groups = {}, -- table: groups you don't want to clear
-	})
-end
-
-return M
+		exclude_groups = {},
+	},
+}

@@ -1,6 +1,6 @@
-  vim.filetype.add({
-    extension = {
-      cdb = "cdb",
-      cql = "cdb",
-    },
-  })
+vim.filetype.add({
+	extension = {
+		cdb = "cdb",
+		cql = "cdb",
+	},
+})

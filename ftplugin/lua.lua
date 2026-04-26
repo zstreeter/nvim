@@ -1,3 +1,2 @@
-local opt = vim.opt
-opt.shiftwidth = 4 -- the number of spaces inserted for each indentation
-opt.tabstop = 4 -- insert 2 spaces for a tab
+vim.opt_local.shiftwidth = 4
+vim.opt_local.tabstop = 4

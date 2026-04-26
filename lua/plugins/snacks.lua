@@ -61,13 +61,6 @@ return {
 			end,
 			desc = "Notification History",
 		},
-		{
-			"<leader>e",
-			function()
-				Snacks.explorer()
-			end,
-			desc = "File Explorer",
-		},
 		-- find
 		{
 			"<leader>fb",
@@ -213,27 +206,6 @@ return {
 			end,
 			desc = "Autocmds",
 		},
-		-- {
-		-- 	"<leader>fb",
-		-- 	function()
-		-- 		Snacks.picker.lines()
-		-- 	end,
-		-- 	desc = "Buffer Lines",
-		-- },
-		-- {
-		-- 	"<leader>fc",
-		-- 	function()
-		-- 		Snacks.picker.command_history()
-		-- 	end,
-		-- 	desc = "Command History",
-		-- },
-		-- {
-		-- 	"<leader>sC",
-		-- 	function()
-		-- 		Snacks.picker.commands()
-		-- 	end,
-		-- 	desc = "Commands",
-		-- },
 		{
 			"<leader>fD",
 			function()
@@ -283,20 +255,13 @@ return {
 			end,
 			desc = "Keymaps",
 		},
-		-- {
-		-- 	"<leader>sl",
-		-- 	function()
-		-- 		Snacks.picker.loclist()
-		-- 	end,
-		-- 	desc = "Location List",
-		-- },
-		-- {
-		-- 	"<leader>fm",
-		-- 	function()
-		-- 		Snacks.picker.marks()
-		-- 	end,
-		-- 	desc = "Marks",
-		-- },
+		{
+			"<leader>?",
+			function()
+				Snacks.picker.keymaps()
+			end,
+			desc = "Search keymaps",
+		},
 		{
 			"<leader>fM",
 			function()
@@ -305,7 +270,7 @@ return {
 			desc = "Man Pages",
 		},
 		{
-			"<leader>fp",
+			"<leader>fP",
 			function()
 				Snacks.picker.lazy()
 			end,
@@ -392,14 +357,14 @@ return {
 		},
 		-- Other
 		{
-			"<leader>z",
+			"<leader>uz",
 			function()
 				Snacks.zen()
 			end,
 			desc = "Toggle Zen Mode",
 		},
 		{
-			"<leader>Z",
+			"<leader>uZ",
 			function()
 				Snacks.zen.zoom()
 			end,
@@ -418,13 +383,6 @@ return {
 				Snacks.scratch.select()
 			end,
 			desc = "Select Scratch Buffer",
-		},
-		{
-			"<leader>n",
-			function()
-				Snacks.notifier.show_history()
-			end,
-			desc = "Notification History",
 		},
 		{
 			"<leader>bd",

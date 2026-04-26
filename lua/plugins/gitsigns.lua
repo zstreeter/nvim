@@ -1,94 +1,14 @@
-local M = {
+return {
 	"lewis6991/gitsigns.nvim",
-	event = "BufEnter",
+	event = "BufReadPre",
 	cmd = "Gitsigns",
-}
-
-M.config = function()
-	-- local icons = require("user.icons")
-
-	-- local wk = require("which-key")
-	--
-	-- wk.add({
-	-- 	{
-	-- 		"<leader>gj",
-	-- 		"<cmd>lua require 'gitsigns'.next_hunk({navigation_message = false})<cr>",
-	-- 		desc = "Next Hunk",
-	-- 	},
-	-- 	{
-	-- 		"<leader>gk",
-	-- 		"<cmd>lua require 'gitsigns'.prev_hunk({navigation_message = false})<cr>",
-	-- 		desc = "Prev Hunk",
-	-- 	},
-	-- 	{
-	-- 		"<leader>gp",
-	-- 		"<cmd>lua require 'gitsigns'.preview_hunk()<cr>",
-	-- 		desc = "Preview Hunk",
-	-- 	},
-	-- 	{
-	-- 		"<leader>gr",
-	-- 		"<cmd>lua require 'gitsigns'.reset_hunk()<cr>",
-	-- 		desc = "Reset Hunk",
-	-- 	},
-	-- 	{
-	-- 		"<leader>gl",
-	-- 		"<cmd>lua require 'gitsigns'.blame_line()<cr>",
-	-- 		desc = "Blame",
-	-- 	},
-	-- 	{
-	-- 		"<leader>gR",
-	-- 		"<cmd>lua require 'gitsigns'.reset_buffer()<cr>",
-	-- 		desc = "Reset Buffer",
-	-- 	},
-	-- 	{
-	-- 		"<leader>gs",
-	-- 		"<cmd>lua require 'gitsigns'.stage_hunk()<cr>",
-	-- 		desc = "Stage Hunk",
-	-- 	},
-	-- 	{
-	-- 		"<leader>gu",
-	-- 		"<cmd>lua require 'gitsigns'.undo_stage_hunk()<cr>",
-	-- 		desc = "Undo Stage Hunk",
-	-- 	},
-	-- 	{
-	-- 		"<leader>gd",
-	-- 		"<cmd>Gitsigns diffthis HEAD<cr>",
-	-- 		desc = "Git Diff",
-	-- 	},
-	-- })
-
-	require("gitsigns").setup({
+	opts = {
 		signs = {
-			add = {
-				-- hl = "GitSignsAdd",
-				text = "┃",
-				-- numhl = "GitSignsAddNr",
-				-- linehl = "GitSignsAddLn",
-			},
-			change = {
-				-- hl = "GitSignsChange",
-				text = "┋",
-				-- numhl = "GitSignsChangeNr",
-				-- linehl = "GitSignsChangeLn",
-			},
-			delete = {
-				-- hl = "GitSignsDelete",
-				text = "",
-				-- numhl = "GitSignsDeleteNr",
-				-- linehl = "GitSignsDeleteLn",
-			},
-			topdelete = {
-				-- hl = "GitSignsDelete",
-				text = "",
-				-- numhl = "GitSignsTopDeleteNr",
-				-- linehl = "GitSignsDeleteLn",
-			},
-			changedelete = {
-				-- hl = "GitSignsChange",
-				text = "┃",
-				-- numhl = "GitSignsChangeNr",
-				-- linehl = "GitSignsChangeLn",
-			},
+			add = { text = "┃" },
+			change = { text = "┋" },
+			delete = { text = "" },
+			topdelete = { text = "" },
+			changedelete = { text = "┃" },
 		},
 		watch_gitdir = {
 			interval = 1000,
@@ -105,7 +25,5 @@ M.config = function()
 			row = 0,
 			col = 1,
 		},
-	})
-end
-
-return M
+	},
+}

@@ -41,16 +41,13 @@ return {
 				-- Use the "*" filetype to run formatters on all filetypes
 				["*"] = { "trim_whitespace" },
 			},
-			-- Set default options
 			default_format_opts = {
 				lsp_format = "fallback",
 			},
-			-- Set up format-on-save
-			-- format_on_save = {
-			-- 	-- These options will be passed to conform.format()
-			-- 	timeout_ms = 500,
-			-- 	lsp_format = "fallback",
-			-- },
+			format_on_save = {
+				timeout_ms = 500,
+				lsp_format = "fallback",
+			},
 			-- Customize formatters
 			formatters = {
 				shfmt = {

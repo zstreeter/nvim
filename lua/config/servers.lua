@@ -1,6 +1,7 @@
 -- Shared LSP server list used by both lsp.lua and mason.lua
 local M = {}
 
+-- Add back if needed: css_variables, cssmodules_ls, lemminx (XML), nginx_language_server.
 M.lsp_servers = {
 	"ts_ls",
 	"lua_ls",
@@ -12,13 +13,9 @@ M.lsp_servers = {
 	"cssls",
 	"basedpyright",
 	"bashls",
-	"css_variables",
-	"cssmodules_ls",
 	"dockerls",
 	"jsonls",
-	"lemminx",
 	"marksman",
-	"nginx_language_server",
 	"taplo",
 	"yamlls",
 }

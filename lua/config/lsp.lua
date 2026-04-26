@@ -58,28 +58,33 @@ vim.api.nvim_create_autocmd("LspAttach", {
 
 		-- set keybinds
 		opts.desc = "Show LSP references"
-		keymap.set("n", "gr", function() Snacks.picker.lsp_references() end, opts)
+		keymap.set("n", "gr", function()
+			Snacks.picker.lsp_references()
+		end, opts)
 
 		opts.desc = "Go to declaration"
 		keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
 
 		opts.desc = "Show LSP definitions"
-		keymap.set("n", "gd", function() Snacks.picker.lsp_definitions() end, opts)
+		keymap.set("n", "gd", function()
+			Snacks.picker.lsp_definitions()
+		end, opts)
 
 		opts.desc = "Show LSP implementations"
-		keymap.set("n", "gi", function() Snacks.picker.lsp_implementations() end, opts)
+		keymap.set("n", "gi", function()
+			Snacks.picker.lsp_implementations()
+		end, opts)
 
 		opts.desc = "Show LSP type definitions"
-		keymap.set("n", "gt", function() Snacks.picker.lsp_type_definitions() end, opts)
+		keymap.set("n", "gt", function()
+			Snacks.picker.lsp_type_definitions()
+		end, opts)
 
 		opts.desc = "See available code actions"
 		keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)
 
 		opts.desc = "Smart rename"
 		keymap.set("n", "<leader>lr", vim.lsp.buf.rename, opts)
-
-		opts.desc = "Show buffer diagnostics"
-		keymap.set("n", "<leader>D", function() Snacks.picker.diagnostics_buffer() end, opts)
 
 		opts.desc = "Show line diagnostics"
 		keymap.set("n", "gl", vim.diagnostic.open_float, opts)

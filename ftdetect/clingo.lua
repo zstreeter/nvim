@@ -1,7 +1,7 @@
 vim.filetype.add({
-  extension = {
-    lp = "clingo",
-    asp = "clingo",
-    cl = "clingo",
-  },
+	extension = {
+		lp = "clingo",
+		asp = "clingo",
+		cl = "clingo",
+	},
 })

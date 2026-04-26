@@ -1,24 +1,26 @@
-local M = {
+return {
 	"ThePrimeagen/harpoon",
 	branch = "harpoon2",
 	dependencies = { "nvim-lua/plenary.nvim" },
+	keys = {
+		{
+			"m",
+			function()
+				require("harpoon"):list():add()
+				vim.notify("󱡅  marked file")
+			end,
+			desc = "Harpoon: mark file",
+		},
+		{
+			"<S-m>",
+			function()
+				local harpoon = require("harpoon")
+				harpoon.ui:toggle_quick_menu(harpoon:list())
+			end,
+			desc = "Harpoon: toggle quick menu",
+		},
+	},
 	config = function()
-		local harpoon = require("harpoon")
-
-		harpoon:setup()
-
-		vim.keymap.set("n", "m", function()
-			require("plugins.harpoon").mark_file()
-		end)
-		vim.keymap.set("n", "<S-m>", function()
-			harpoon.ui:toggle_quick_menu(harpoon:list())
-		end)
+		require("harpoon"):setup()
 	end,
 }
-
-function M.mark_file()
-	require("harpoon"):list():add()
-	vim.notify("󱡅  marked file")
-end
-
-return M

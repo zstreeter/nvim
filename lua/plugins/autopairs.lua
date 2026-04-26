@@ -1,9 +1,7 @@
-local M = {
+return {
 	"windwp/nvim-autopairs",
-}
-
-M.config = function()
-	require("nvim-autopairs").setup({
+	event = "InsertEnter",
+	opts = {
 		map_char = {
 			all = "(",
 			tex = "{",
@@ -27,14 +25,12 @@ M.config = function()
 			map = "<M-e>",
 			chars = { "{", "[", "(", '"', "'" },
 			pattern = string.gsub([[ [%'%"%)%>%]%)%}%,] ]], "%s+", ""),
-			offset = 0, -- Offset from pattern match
+			offset = 0,
 			end_key = "$",
 			keys = "qwertyuiopzxcvbnmasdfghjkl",
 			check_comma = true,
 			highlight = "Search",
 			highlight_grey = "Comment",
 		},
-	})
-end
-
-return M
+	},
+}
