@@ -56,15 +56,24 @@ return {
 		local last_counts = {}
 
 		local function check_account(account)
-			vim.fn.jobstart({ "himalaya", "--account", account, "envelope", "list", "--output", "json" }, {
+			vim.fn.jobstart({ "himalaya", "--account", account, "envelope", "list", "--json" }, {
 				stdout_buffered = true,
 				on_stdout = function(_, data)
 					if data and data[1] and data[1] ~= "" then
 						local ok, result = pcall(vim.json.decode, table.concat(data, ""))
-						if ok and result then
+						-- himalaya v2: output is { envelopes = [ { flags = [ {iana="seen"} ] } ] }
+						-- (v1 was a bare array of envelopes with string flags like "Seen").
+						if ok and result and result.envelopes then
 							local unread = 0
-							for _, envelope in ipairs(result) do
-								if envelope.flags and not vim.tbl_contains(envelope.flags, "Seen") then
+							for _, envelope in ipairs(result.envelopes) do
+								local seen = false
+								for _, flag in ipairs(envelope.flags or {}) do
+									if flag.iana == "seen" then
+										seen = true
+										break
+									end
+								end
+								if not seen then
 									unread = unread + 1
 								end
 							end
