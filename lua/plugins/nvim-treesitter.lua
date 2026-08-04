@@ -8,10 +8,12 @@ return {
 	--   "nvim-treesitter/nvim-treesitter-textobjects",
 	-- },
 	config = function()
-		-- CRASH FIX: Use pcall so Neovim doesn't die if the plugin is missing
 		local status, treesitter = pcall(require, "nvim-treesitter.configs")
 		if not status then
-			return -- Exit silently if not found, allowing lazy.nvim to install it
+			-- A broken treesitter must be loud: silent return here used to mean
+			-- "no highlighting anywhere and no error to explain why".
+			vim.notify("nvim-treesitter failed to load — no treesitter highlighting: " .. tostring(treesitter), vim.log.levels.ERROR)
+			return
 		end
 		treesitter.setup({
 			highlight = {

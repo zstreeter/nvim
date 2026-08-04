@@ -54,5 +54,3 @@ opt.shortmess:append("c")
 vim.cmd("set whichwrap+=<,>,[,],h,l")
 opt.iskeyword:append("-")
 
-vim.g.netrw_banner = 0
-vim.g.netrw_mouse = 2

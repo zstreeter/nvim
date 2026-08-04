@@ -34,8 +34,6 @@ return {
 			"PmenuSbar",
 			"FloatBorder",
 			"NormalFloat",
-			"NvimTreeNormal",
-			"Fidget",
 			"NeoTreeCursorLine",
 			"NeoTreeDimText",
 			"NeoTreeDirectoryIcon",

@@ -30,11 +30,18 @@ local function pick_pdf()
 	})
 end
 
-vim.api.nvim_create_user_command("ZoteroPdf", pick_pdf, { desc = "Fuzzy find Zotero PDFs and open in sioyek" })
-
 return {
 	"folke/snacks.nvim",
 	optional = true,
+	-- init (not module scope): module scope runs during lazy's spec import,
+	-- before startup finishes; init is the sanctioned startup hook.
+	init = function()
+		vim.api.nvim_create_user_command(
+			"ZoteroPdf",
+			pick_pdf,
+			{ desc = "Fuzzy find Zotero PDFs and open in sioyek" }
+		)
+	end,
 	keys = {
 		{ "<leader>fz", pick_pdf, desc = "Find Zotero PDF (sioyek)" },
 	},
