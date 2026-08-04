@@ -15,6 +15,15 @@ if [ -n "$dups" ]; then
 	exit 1
 fi
 
+# structural: goto pickers live in snacks.lua only, not duplicated in lsp.lua
+if grep -n 'Snacks.picker' lua/config/lsp.lua >/dev/null 2>&1; then
+	echo "config/lsp.lua duplicates snacks picker keymaps"; exit 1
+fi
+# structural: which-key groups live in the registry only
+if grep -n 'group = ' lua/plugins/which-key.lua lua/plugins/lang/quarto.lua >/dev/null 2>&1; then
+	echo "group labels outside config/keys.lua"; exit 1
+fi
+
 # structural: lsp/*.lua are pure data — no plugin requires
 if grep -rn 'require(' lsp/ >/dev/null 2>&1; then
 	echo "lsp/ must stay pure data:"; grep -rn 'require(' lsp/

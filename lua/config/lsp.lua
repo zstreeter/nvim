@@ -52,29 +52,9 @@ vim.api.nvim_create_autocmd("LspAttach", {
 		-- See `:help vim.lsp.*` for documentation on any of the below functions
 		local opts = { buffer = ev.buf, silent = true }
 
-		-- set keybinds
-		opts.desc = "Show LSP references"
-		keymap.set("n", "gr", function()
-			Snacks.picker.lsp_references()
-		end, opts)
-
-		opts.desc = "Go to declaration"
-		keymap.set("n", "gD", vim.lsp.buf.declaration, opts)
-
-		opts.desc = "Show LSP definitions"
-		keymap.set("n", "gd", function()
-			Snacks.picker.lsp_definitions()
-		end, opts)
-
-		opts.desc = "Show LSP implementations"
-		keymap.set("n", "gi", function()
-			Snacks.picker.lsp_implementations()
-		end, opts)
-
-		opts.desc = "Show LSP type definitions"
-		keymap.set("n", "gt", function()
-			Snacks.picker.lsp_type_definitions()
-		end, opts)
+		-- Goto/reference pickers (gd/gD/gr/gI/gy) are global maps owned by
+		-- snacks.lua — not duplicated here. Buffer-local rebinds used to
+		-- shadow built-in gt (next tab) and diverge on gi/gI, gt/gy.
 
 		opts.desc = "See available code actions"
 		keymap.set({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, opts)

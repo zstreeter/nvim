@@ -13,6 +13,10 @@ refactors should use these names.
   data interface (server + tool names). `lsp/*.lua` are adapters: pure
   settings tables, no `require`s. nvim-lspconfig is a data source only —
   its bundled `lsp/` dir resolves servers with no local adapter.
+- **Keymap registry** (`lua/config/keys.lua`) — single source for which-key
+  group labels and prefix ownership; errors at boot on duplicate prefixes.
+  Plugin handlers stay in plugin files (lazy `keys={}` keeps lazy-loading);
+  full binding centralization was deliberately not done.
 - **Smoke suite** (`tests/smoke.lua` via `tests/smoke.sh`) — headless boot +
   assertion suite; every structural refactor adds checks here and must pass
   before commit.

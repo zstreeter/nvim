@@ -47,8 +47,7 @@ function M.config()
 	local wk = require("which-key")
 
 	wk.add({
-		-- Main Quarto Group
-		{ "<leader>Q", group = "quarto", icon = "" },
+		-- Group labels live in config/keys.lua; bindings registered here.
 
 		-- Running Code
 		{ "<leader>Qc", runner.run_cell, desc = "Run Cell" },
@@ -58,7 +57,6 @@ function M.config()
 		{ "<leader>Qv", runner.run_range, desc = "Run Visual Range", mode = "v" },
 
 		-- Molten / Jupyter Specific
-		{ "<leader>Qm", group = "molten", icon = "" },
 		{ "<leader>Qmi", "<cmd>MoltenInit<cr>", desc = "Init Kernel" },
 		{ "<leader>Qmo", "<cmd>MoltenEvaluateOperator<cr>", desc = "Evaluate Operator" },
 		{ "<leader>Qmr", "<cmd>MoltenReevaluateCell<cr>", desc = "Re-evaluate Cell" },

@@ -1,10 +1,6 @@
 return {
 	"folke/which-key.nvim",
 	event = "VeryLazy",
-	init = function()
-		vim.o.timeout = true
-		vim.o.timeoutlen = 300
-	end,
 	opts = {
 		preset = "helix",
 		plugins = {
@@ -42,22 +38,9 @@ return {
 		local wk = require("which-key")
 		wk.setup(opts)
 
-		-- Group labels — lets which-key show a category title for each prefix.
-		-- Direct (single-key) bindings get their description from the keymap callsite,
-		-- so they don't need to be repeated here.
-		wk.add({
-			{ "<leader>a", group = "AI" },
-			{ "<leader>b", group = "buffer" },
-			{ "<leader>c", group = "code" },
-			{ "<leader>d", group = "diagnostics" },
-			{ "<leader>f", group = "find" },
-			{ "<leader>g", group = "git" },
-			{ "<leader>l", group = "LSP" },
-			{ "<leader>m", group = "mail" },
-			{ "<leader>o", group = "obsidian" },
-			{ "<leader>r", group = "rename/restart" },
-			{ "<leader>s", group = "search/symbols" },
-			{ "<leader>u", group = "ui/toggles" },
-		})
+		-- Group labels come from the keymap registry (config/keys.lua) — the
+		-- single source for prefix ownership. Direct bindings get their
+		-- description from the keymap callsite.
+		wk.add(require("config.keys").groups)
 	end,
 }
