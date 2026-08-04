@@ -40,6 +40,22 @@ check("icons: breadcrumbs/navic boots against the shared table", function()
 	assert(package.loaded["nvim-navic"], "navic did not load")
 end)
 
+-- ── LSP module ──────────────────────────────────────────────────────────
+check("lsp: every enabled server resolves a config", function()
+	local servers = require("config.servers")
+	for _, name in ipairs(servers.lsp_servers) do
+		local cfg = vim.lsp.config[name]
+		assert(type(cfg) == "table", name .. " has no resolvable config")
+		assert(cfg.cmd, name .. " config has no cmd")
+	end
+end)
+
+check("lsp: blink capabilities applied via the '*' default", function()
+	local cfg = vim.lsp.config.ts_ls
+	local snip = vim.tbl_get(cfg, "capabilities", "textDocument", "completion", "completionItem", "snippetSupport")
+	assert(snip == true, "blink capabilities not merged into resolved server config")
+end)
+
 -- ── result ──────────────────────────────────────────────────────────────
 if #failures == 0 then
 	print("SMOKE-PASS")

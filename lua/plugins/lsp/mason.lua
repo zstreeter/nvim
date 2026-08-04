@@ -2,6 +2,8 @@ return {
 	"mason-org/mason.nvim",
 	dependencies = {
 		"WhoIsSethDaniel/mason-tool-installer.nvim",
+		-- Never setup() on purpose: mason-tool-installer needs it installed to
+		-- map LSP-client names (config/servers.lua) to mason package names.
 		"mason-org/mason-lspconfig.nvim",
 	},
 	config = function()

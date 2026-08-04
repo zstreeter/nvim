@@ -1,4 +1,13 @@
--- Shared LSP server list used by both lsp.lua and mason.lua
+-- The server/tool interface of the LSP module. Two consumers:
+--   config/lsp.lua      enables lsp_servers via vim.lsp.enable()
+--   plugins/lsp/mason.lua installs both lists via mason-tool-installer
+-- Two vocabularies, deliberately: lsp_servers are LSP-client names (resolved
+-- against this repo's lsp/*.lua, then nvim-lspconfig's bundled lsp/ dir);
+-- mason-tool-installer accepts those same names only because mason-lspconfig
+-- is installed to provide the name mapping. formatters_and_linters are mason
+-- package names. Formatters NOT listed here (gofmt, goimports, rustfmt) ship
+-- with their language toolchains — conform.lua may reference more than mason
+-- installs.
 local M = {}
 
 -- Add back if needed: css_variables, cssmodules_ls, lemminx (XML), nginx_language_server.
