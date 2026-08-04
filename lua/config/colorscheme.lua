@@ -1,25 +1,8 @@
--- Dynamically loads the active Omarchy theme spec, falls back to catppuccin
--- on non-Omarchy systems. `lua/plugins/omarchy-theme.lua` stays at the plugin
--- root because the omarchy theme switcher manages it as a symlink.
+-- Applies the omarchy theme when present (via the config.omarchy adapter),
+-- falling back to catppuccin on non-omarchy systems or unknown themes.
+local colorscheme = require("config.omarchy").get_colorscheme() or "catppuccin"
 
-local function get_colorscheme()
-	local ok, specs = pcall(require, "plugins.omarchy-theme")
-	if ok and type(specs) == "table" then
-		for _, spec in ipairs(specs) do
-			if spec[1] == "LazyVim/LazyVim" and spec.opts and spec.opts.colorscheme then
-				return spec.opts.colorscheme
-			end
-		end
-	end
-
-	-- Fallback for non-Omarchy systems
-	return "catppuccin"
-end
-
-local colorscheme = get_colorscheme()
-
-local ok = pcall(vim.cmd.colorscheme, colorscheme)
-if not ok then
+if not pcall(vim.cmd.colorscheme, colorscheme) then
 	vim.notify("Colorscheme '" .. colorscheme .. "' not found, using catppuccin", vim.log.levels.WARN)
 	pcall(vim.cmd.colorscheme, "catppuccin")
 end

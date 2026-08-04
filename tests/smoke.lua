@@ -99,6 +99,37 @@ check("keys: <C-j>/<C-k> owned by neoscroll alone", function()
 	assert(cj ~= "<C-D>", "raw <C-D> nnoremap is back")
 end)
 
+-- ── omarchy theme seam ──────────────────────────────────────────────────
+check("theme: adapter returns a name or nil, and a colorscheme applied", function()
+	local name = require("config.omarchy").get_colorscheme()
+	assert(name == nil or type(name) == "string", "adapter returned " .. type(name))
+	assert(vim.g.colors_name and #vim.g.colors_name > 0, "no colorscheme applied")
+	-- adapter results must be real colorschemes — never the raw repo-ish name
+	if name then
+		assert(vim.tbl_contains(vim.fn.getcompletion("", "color"), name), name .. " is not an available colorscheme")
+		-- applied scheme may flavour-expand (catppuccin-nvim → catppuccin-mocha);
+		-- compare theme roots, not exact names
+		local applied = vim.g.colors_name
+		local root = function(s)
+			return s:match("^[^-]+")
+		end
+		assert(root(applied) == root(name), ("omarchy says %s but %s is active"):format(name, applied))
+	else
+		assert(vim.startswith(vim.g.colors_name, "catppuccin"), "fallback should be catppuccin, got " .. vim.g.colors_name)
+	end
+end)
+
+check("theme: lualine namespace shadow is gone and lualine boots", function()
+	assert(vim.fn.isdirectory(vim.fn.stdpath("config") .. "/lua/lualine") == 0, "lua/lualine/ shadow dir exists")
+	require("lazy").load({ plugins = { "lualine.nvim" } })
+	assert(package.loaded["lualine"], "lualine did not load")
+	-- the config no longer injects a theme into lualine's namespace
+	local origin = vim.api.nvim_get_runtime_file("lua/lualine/themes/default.lua", true)
+	for _, path in ipairs(origin) do
+		assert(not path:find(vim.fn.stdpath("config"), 1, true), "config still shadows lualine.themes.default")
+	end
+end)
+
 -- ── result ──────────────────────────────────────────────────────────────
 if #failures == 0 then
 	print("SMOKE-PASS")

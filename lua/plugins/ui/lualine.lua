@@ -5,7 +5,6 @@ return {
 		local lualine = require("lualine")
 		local icons = require("config.icons")
 		local lazy_status = require("lazy.status") -- to configure lazy pending updates count
-		local custom_default = require("lualine.themes.default")
 
 		-- configure lualine with modified theme
 		lualine.setup({

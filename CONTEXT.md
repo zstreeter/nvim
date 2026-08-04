@@ -17,6 +17,12 @@ refactors should use these names.
   group labels and prefix ownership; errors at boot on duplicate prefixes.
   Plugin handlers stay in plugin files (lazy `keys={}` keeps lazy-loading);
   full binding centralization was deliberately not done.
+- **Omarchy theme adapter** (`lua/config/omarchy.lua`) — the only code that
+  knows omarchy hands us a LazyVim-shaped spec via the
+  `lua/plugins/omarchy-theme.lua` symlink. Interface:
+  `get_colorscheme() → string|nil` (validated against available colorschemes,
+  repo-ish names normalized). `colorscheme.lua` consumes it; catppuccin is
+  the non-omarchy fallback.
 - **Smoke suite** (`tests/smoke.lua` via `tests/smoke.sh`) — headless boot +
   assertion suite; every structural refactor adds checks here and must pass
   before commit.
