@@ -4,7 +4,14 @@ return {
 	lazy = false,
 	opts = {
 		bigfile = { enabled = true },
-		dashboard = { enabled = true },
+		dashboard = {
+			enabled = true,
+			sections = {
+				{ section = "header" },
+				{ title = "Projects", section = "projects", indent = 2, padding = 1 },
+				{ title = "Recent Files", section = "recent_files", indent = 2, padding = 1 },
+			},
+		},
 		explorer = { enabled = false },
 		indent = { enabled = true },
 		input = { enabled = true },

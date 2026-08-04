@@ -30,6 +30,10 @@ keymap("v", ">", ">gv", opts)
 keymap("x", "p", [["_dP]])
 keymap("n", "x", '"_x')
 
+-- Comment toggle using built-in gc (Neovim 0.12)
+keymap("n", "<leader>/", "gcc", { remap = true, desc = "Comment line" })
+keymap("x", "<leader>/", "gc", { remap = true, desc = "Comment selection" })
+
 vim.cmd([[:amenu 10.100 mousemenu.Goto\ Definition <cmd>lua vim.lsp.buf.definition()<CR>]])
 vim.cmd([[:amenu 10.110 mousemenu.References <cmd>lua vim.lsp.buf.references()<CR>]])
 -- vim.cmd [[:amenu 10.120 mousemenu.-sep- *]]

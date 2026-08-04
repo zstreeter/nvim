@@ -62,6 +62,13 @@ function M.config()
 	})
 
 	require("breadcrumbs").setup()
+
+	-- Update winbar immediately on buffer enter and LSP attach
+	vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter", "LspAttach" }, {
+		callback = function()
+			pcall(require("breadcrumbs").get_winbar)
+		end,
+	})
 end
 
 return M
