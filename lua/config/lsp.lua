@@ -1,5 +1,6 @@
 -- Enable LSP servers (list defined in config/servers.lua)
 local servers = require("config.servers")
+local icons = require("config.icons")
 vim.lsp.enable(servers.lsp_servers)
 
 -- Configure diagnostic display with custom signs
@@ -16,10 +17,10 @@ vim.diagnostic.config({
 	virtual_lines = false,
 	signs = {
 		text = {
-			[vim.diagnostic.severity.ERROR] = " ",
-			[vim.diagnostic.severity.WARN] = " ",
-			[vim.diagnostic.severity.HINT] = " ",
-			[vim.diagnostic.severity.INFO] = " ",
+			[vim.diagnostic.severity.ERROR] = icons.diagnostics.Error,
+			[vim.diagnostic.severity.WARN] = icons.diagnostics.Warn,
+			[vim.diagnostic.severity.HINT] = icons.diagnostics.Hint,
+			[vim.diagnostic.severity.INFO] = icons.diagnostics.Info,
 		},
 	},
 	underline = true,

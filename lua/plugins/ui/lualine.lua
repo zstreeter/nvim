@@ -3,6 +3,7 @@ return {
 	dependencies = { "nvim-tree/nvim-web-devicons" },
 	config = function()
 		local lualine = require("lualine")
+		local icons = require("config.icons")
 		local lazy_status = require("lazy.status") -- to configure lazy pending updates count
 		local custom_default = require("lualine.themes.default")
 
@@ -41,7 +42,7 @@ return {
 							info = "DiagnosticInfo",
 							hint = "DiagnosticHint",
 						},
-						symbols = { error = " ", warn = " ", info = " ", hint = " " },
+						symbols = { error = icons.diagnostics.Error, warn = icons.diagnostics.Warn, info = icons.diagnostics.Info, hint = icons.diagnostics.Hint },
 						colored = true,
 						update_in_insert = false,
 						always_visible = false,
