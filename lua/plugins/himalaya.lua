@@ -47,64 +47,8 @@ return {
 		{ "<leader>mg", "<cmd>Himalaya gmail<cr>", desc = "Gmail inbox" },
 		{ "<leader>mw", "<cmd>Himalaya work<cr>", desc = "Work inbox" },
 	},
-	config = function()
-		vim.g.himalaya_folder_picker = "telescope"
-		vim.g.himalaya_folder_picker_telescope_preview = 1
-
-		-- Check for new mail every 5 minutes
-		local check_interval = 5 * 60 * 1000 -- milliseconds
-		local last_counts = {}
-
-		local function check_account(account)
-			vim.fn.jobstart({ "himalaya", "--account", account, "envelope", "list", "--json" }, {
-				stdout_buffered = true,
-				on_stdout = function(_, data)
-					if data and data[1] and data[1] ~= "" then
-						local ok, result = pcall(vim.json.decode, table.concat(data, ""))
-						-- himalaya v2: output is { envelopes = [ { flags = [ {iana="seen"} ] } ] }
-						-- (v1 was a bare array of envelopes with string flags like "Seen").
-						if ok and result and result.envelopes then
-							local unread = 0
-							for _, envelope in ipairs(result.envelopes) do
-								local seen = false
-								for _, flag in ipairs(envelope.flags or {}) do
-									if flag.iana == "seen" then
-										seen = true
-										break
-									end
-								end
-								if not seen then
-									unread = unread + 1
-								end
-							end
-
-							if last_counts[account] ~= nil and unread > last_counts[account] then
-								local new_mail = unread - last_counts[account]
-								vim.notify(
-									string.format("%d new email%s in %s", new_mail, new_mail > 1 and "s" or "", account),
-									vim.log.levels.INFO,
-									{ title = "📬 Mail" }
-								)
-							end
-							last_counts[account] = unread
-						end
-					end
-				end,
-			})
-		end
-
-		local function check_all_mail()
-			check_account("gmail")
-			-- Uncomment once work account is set up:
-			-- check_account("work")
-		end
-
-		-- Start checking after Neovim is fully loaded
-		vim.defer_fn(function()
-			check_all_mail()
-			vim.fn.timer_start(check_interval, function()
-				check_all_mail()
-			end, { ["repeat"] = -1 })
-		end, 3000)
-	end,
+	-- New-mail polling lives in config/mail-notify.lua (started from
+	-- init.lua) — NOT here: this spec is lazy (cmd/keys), so anything in
+	-- config only runs after the first :Himalaya. The old telescope picker
+	-- settings were dead — telescope is not installed.
 }

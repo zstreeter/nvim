@@ -130,6 +130,79 @@ check("theme: lualine namespace shadow is gone and lualine boots", function()
 	end
 end)
 
+-- ── mail poller ─────────────────────────────────────────────────────────
+local function envelopes_json(unseen, seen)
+	local envs = {}
+	for _ = 1, unseen do
+		table.insert(envs, { flags = {} })
+	end
+	for _ = 1, seen do
+		table.insert(envs, { flags = { { iana = "seen" } } })
+	end
+	return vim.json.encode({ envelopes = envs })
+end
+
+check("mail: notifies on unread increase, stop() halts polling", function()
+	local mail = require("config.mail-notify")
+	local sequence = { envelopes_json(1, 2), envelopes_json(3, 2), envelopes_json(3, 2) }
+	local calls, notifications = 0, {}
+	local orig_notify = vim.notify
+	vim.notify = function(msg)
+		table.insert(notifications, msg)
+	end
+	mail.start({
+		accounts = { "testacct" },
+		initial_delay_ms = 10,
+		interval_ms = 40,
+		runner = function(_, on_done)
+			calls = calls + 1
+			on_done(sequence[math.min(calls, #sequence)])
+		end,
+	})
+	vim.wait(1000, function()
+		return calls >= 2
+	end)
+	mail.stop()
+	vim.notify = orig_notify
+	assert(calls >= 2, "poller ticked " .. calls .. " times")
+	local found
+	for _, msg in ipairs(notifications) do
+		if msg:find("new email") then
+			found = msg
+		end
+	end
+	assert(found, "no new-mail notification fired")
+	assert(found:find("2 new emails in testacct", 1, true), "unexpected notification: " .. found)
+	local settled = calls
+	vim.wait(150)
+	assert(calls == settled, "runner still polling after stop()")
+end)
+
+check("mail: schema drift warns loudly instead of reporting zero", function()
+	local mail = require("config.mail-notify")
+	local warned
+	local orig_notify = vim.notify
+	vim.notify = function(msg)
+		if msg:find("schema") then
+			warned = true
+		end
+	end
+	mail.start({
+		accounts = { "testacct" },
+		initial_delay_ms = 10,
+		interval_ms = 5000,
+		runner = function(_, on_done)
+			on_done('{"not_envelopes": []}')
+		end,
+	})
+	vim.wait(1000, function()
+		return warned
+	end)
+	mail.stop()
+	vim.notify = orig_notify
+	assert(warned, "schema drift was silent")
+end)
+
 -- ── result ──────────────────────────────────────────────────────────────
 if #failures == 0 then
 	print("SMOKE-PASS")

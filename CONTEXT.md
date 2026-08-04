@@ -23,6 +23,12 @@ refactors should use these names.
   `get_colorscheme() → string|nil` (validated against available colorschemes,
   repo-ish names normalized). `colorscheme.lua` consumes it; catppuccin is
   the non-omarchy fallback.
+- **Mail notify module** (`lua/config/mail-notify.lua`) — background new-mail
+  polling with an explicit lifecycle: `start(opts)` / `stop()`, started
+  eagerly from init.lua, stopped on VimLeavePre. The job runner is
+  injectable; JSON parsing and per-account unread state are private.
+  Distinct from the himalaya plugin spec, which owns only `<leader>m`
+  keymaps and lazy-loads on first use.
 - **Smoke suite** (`tests/smoke.lua` via `tests/smoke.sh`) — headless boot +
   assertion suite; every structural refactor adds checks here and must pass
   before commit.

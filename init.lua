@@ -13,3 +13,7 @@ local modules = {
 for _, mod in ipairs(modules) do
 	require(mod)
 end
+
+-- Background services with an explicit lifecycle (stop on VimLeavePre).
+-- Uncomment "work" once that account is set up.
+require("config.mail-notify").start({ accounts = { "gmail" } })
