@@ -1,58 +1,82 @@
+-- nvim-treesitter `main` branch. The old `master` API (nvim-treesitter.configs,
+-- ensure_installed, highlight/indent modules) is gone: `main` installs parsers
+-- imperatively and leaves highlighting to core's `vim.treesitter.start`.
+--
+-- `main` shells out to the `tree-sitter` CLI to build every parser, so that
+-- binary is a hard prerequisite. Not via mason: its prebuilt CLI needs GLIBC
+-- 2.39 and this box is on 2.35. `cargo install tree-sitter-cli` builds against
+-- the local libc and lands in ~/.cargo/bin.
+local MAX_FILESIZE = 100 * 1024 -- 100 KB
+
+-- ponytail: one flat list, no per-language opts — nothing here needs them yet.
+local PARSERS = {
+	"bash",
+	"c",
+	"cpp",
+	"css",
+	"dockerfile",
+	"gitignore",
+	"go",
+	"graphql",
+	"html",
+	"javascript",
+	"json",
+	"latex", -- markdown_inline injects `latex` into $...$; markview renders it
+	"lua",
+	"markdown",
+	"markdown_inline",
+	"prisma",
+	"python",
+	"query",
+	"rust",
+	"svelte",
+	"tsx",
+	"typescript",
+	"vim",
+	"vimdoc",
+	"yaml",
+}
+
+--- Big files stay on regex syntax: parsing them blocks the UI.
+---@param buf integer
+local function too_big(buf)
+	local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(buf))
+	return ok and stats and stats.size > MAX_FILESIZE
+end
+
 return {
 	"nvim-treesitter/nvim-treesitter",
+	branch = "main",
 	build = ":TSUpdate",
 	event = { "BufReadPre", "BufNewFile" },
-	-- CRASH FIX: Temporarily disable dependencies to allow the main plugin to install first.
-	-- Once Neovim starts successfully, you can uncomment these lines.
-	-- dependencies = {
-	--   "nvim-treesitter/nvim-treesitter-textobjects",
-	-- },
 	config = function()
-		local status, treesitter = pcall(require, "nvim-treesitter.configs")
-		if not status then
-			-- A broken treesitter must be loud: silent return here used to mean
-			-- "no highlighting anywhere and no error to explain why".
-			vim.notify("nvim-treesitter failed to load — no treesitter highlighting: " .. tostring(treesitter), vim.log.levels.ERROR)
-			return
+		require("nvim-treesitter").setup()
+
+		-- Installing is async and a no-op for parsers already present, so this
+		-- is safe on every startup — it only does work on a new machine or when
+		-- PARSERS grows.
+		local installed = {} ---@type table<string, boolean>
+		for _, lang in ipairs(require("nvim-treesitter").get_installed()) do
+			installed[lang] = true
 		end
-		treesitter.setup({
-			highlight = {
-				enable = true,
-				disable = function(lang, buf)
-					local max_filesize = 100 * 1024 -- 100 KB
-					local ok, stats = pcall(vim.loop.fs_stat, vim.api.nvim_buf_get_name(buf))
-					if ok and stats and stats.size > max_filesize then
-						return true
-					end
-				end,
-			},
-			indent = { enable = false },
-			ensure_installed = {
-				"json",
-				"javascript",
-				"typescript",
-				"tsx",
-				"yaml",
-				"html",
-				"css",
-				"prisma",
-				"markdown",
-				"markdown_inline",
-				"svelte",
-				"graphql",
-				"bash",
-				"lua",
-				"vim",
-				"dockerfile",
-				"gitignore",
-				"query",
-				"vimdoc",
-				"python",
-				"go",
-				"rust",
-				"c",
-				"cpp",
-			},
+		local missing = vim.tbl_filter(function(lang)
+			return not installed[lang]
+		end, PARSERS)
+		if #missing > 0 then
+			require("nvim-treesitter").install(missing)
+		end
+
+		-- `main` has no highlight module — core starts per buffer. Errors are
+		-- expected for any filetype whose parser isn't installed, so this must
+		-- stay quiet rather than notifying on every unhandled filetype.
+		vim.api.nvim_create_autocmd("FileType", {
+			desc = "Start treesitter highlighting when a parser exists",
+			callback = function(ev)
+				if too_big(ev.buf) then
+					return
+				end
+				pcall(vim.treesitter.start, ev.buf)
+			end,
 		})
 	end,
 }
