@@ -21,6 +21,7 @@ lua/config/
   ├── lazy.lua            # lazy.nvim bootstrap (imports lua/plugins/**)
   ├── colorscheme.lua     # Applies theme via the omarchy adapter
   ├── omarchy.lua         # Omarchy theme adapter: get_colorscheme() → string|nil
+  ├── herdr.lua           # herdr adapter: sidekick session backend, AI CLIs in real panes
   ├── icons.lua           # Single source of truth for glyphs (kind, diagnostics)
   ├── mail-notify.lua     # Background mail poller: start()/stop(), injectable runner
   ├── servers.lua         # LSP server + mason tool lists (the LSP data interface)

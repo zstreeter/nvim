@@ -150,7 +150,10 @@ function M:dump()
     "--format",
     "ansi",
     "--lines",
-    tostring(Config.cli.mux.dump),
+    -- mux.dump was only added to sidekick in Apr 2026; the lockfile pin may
+    -- predate it, and `--lines nil` would be sent verbatim. 2000 is upstream's
+    -- default.
+    tostring(Config.cli.mux.dump or 2000),
   }, { notify = false })
   return out
 end

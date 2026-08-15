@@ -52,19 +52,10 @@ return {
 	config = function()
 		require("nvim-treesitter").setup()
 
-		-- Installing is async and a no-op for parsers already present, so this
-		-- is safe on every startup — it only does work on a new machine or when
-		-- PARSERS grows.
-		local installed = {} ---@type table<string, boolean>
-		for _, lang in ipairs(require("nvim-treesitter").get_installed()) do
-			installed[lang] = true
-		end
-		local missing = vim.tbl_filter(function(lang)
-			return not installed[lang]
-		end, PARSERS)
-		if #missing > 0 then
-			require("nvim-treesitter").install(missing)
-		end
+		-- Installing is async and skips parsers already present (silently, in
+		-- install_lang), so this is safe on every startup — it only does work
+		-- on a new machine or when PARSERS grows.
+		require("nvim-treesitter").install(PARSERS)
 
 		-- `main` has no highlight module — core starts per buffer. Errors are
 		-- expected for any filetype whose parser isn't installed, so this must
