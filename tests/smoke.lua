@@ -203,6 +203,32 @@ check("mail: schema drift warns loudly instead of reporting zero", function()
 	assert(warned, "schema drift was silent")
 end)
 
+-- ── herdr adapter ───────────────────────────────────────────────────────
+check("herdr: pane list maps to sessions, non-agent panes ignored", function()
+	require("lazy").load({ plugins = { "sidekick.nvim" } })
+	local herdr = require("config.herdr")
+	local sessions = herdr.sessions({
+		{ pane_id = "w1:p1", cwd = "/tmp/a", workspace_id = "w1" }, -- plain shell
+		{ pane_id = "w1:p3", cwd = "/tmp/b", foreground_cwd = "/tmp/c", agent = "pi", workspace_id = "w1" },
+		{ pane_id = "w1:p4", cwd = "/tmp/d", agent = "not-a-sidekick-tool", workspace_id = "w1" },
+	})
+	assert(#sessions == 1, ("expected 1 session, got %d"):format(#sessions))
+	assert(sessions[1].id == "herdr w1:p3", "session id is not keyed on the pane id")
+	assert(sessions[1].herdr_pane_id == "w1:p3", "pane id not carried onto the session")
+	assert(sessions[1].cwd == "/tmp/c", "foreground_cwd should win over the pane's start cwd")
+	assert(sessions[1].tool.name == "pi", "agent label did not resolve to the sidekick tool")
+end)
+
+check("herdr: setup is a no-op outside a herdr pane", function()
+	local Config = require("sidekick.config")
+	local before = Config.cli.mux.backend
+	local orig = vim.env.HERDR_ENV
+	vim.env.HERDR_ENV = nil
+	require("config.herdr").setup()
+	vim.env.HERDR_ENV = orig
+	assert(Config.cli.mux.backend == before, "backend was hijacked while outside herdr")
+end)
+
 -- ── result ──────────────────────────────────────────────────────────────
 if #failures == 0 then
 	print("SMOKE-PASS")

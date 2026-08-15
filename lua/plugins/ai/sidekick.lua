@@ -4,23 +4,20 @@ return {
 	opts = {
 		cli = {
 			mux = {
-				backend = "tmux",
 				enabled = true,
+				-- "terminal" embeds the CLI in an nvim :terminal, whose libvterm drops
+				-- the kitty graphics that @fadouse/pi-math emits for rendered LaTeX.
+				-- "split" hands the tool to the multiplexer, which actually draws them.
+				create = "split",
+				split = { vertical = true, size = 0.45 },
 			},
 		},
 	},
-	init = function()
-		vim.api.nvim_create_autocmd("FileType", {
-			pattern = "sidekick_terminal",
-			callback = function(event)
-				local opts = { buffer = event.buf, noremap = true, silent = true }
-				vim.keymap.set("t", "<m-h>", "<C-\\><C-n><C-w>h", opts)
-				vim.keymap.set("t", "<m-j>", "<C-\\><C-n><C-w>j", opts)
-				vim.keymap.set("t", "<m-k>", "<C-\\><C-n><C-w>k", opts)
-				vim.keymap.set("t", "<m-l>", "<C-\\><C-n><C-w>l", opts)
-			end,
-			desc = "Window navigation in sidekick terminal",
-		})
+	config = function(_, opts)
+		require("sidekick").setup(opts)
+		-- Swaps the backend to herdr when nvim is running inside one. Outside
+		-- herdr this is a no-op and sidekick keeps its tmux/zellij default.
+		require("config.herdr").setup()
 	end,
 	keys = {
 		{
@@ -38,6 +35,30 @@ return {
 			end,
 			mode = "v",
 			desc = "AI: Sidekick send selection",
+		},
+		{
+			"<leader>ai",
+			function()
+				require("sidekick.cli").toggle({ name = "pi", focus = true })
+			end,
+			mode = "n",
+			desc = "AI: Toggle pi (interactive)",
+		},
+		{
+			"<leader>ac",
+			function()
+				require("sidekick.cli").prompt()
+			end,
+			mode = { "n", "v" },
+			desc = "AI: Sidekick prompt picker (explain/fix/review/tests)",
+		},
+		{
+			"<leader>af",
+			function()
+				require("sidekick.cli").send({ msg = "{file}" })
+			end,
+			mode = "n",
+			desc = "AI: Send current file as context",
 		},
 	},
 }
