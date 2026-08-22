@@ -159,14 +159,18 @@ function M:dump()
 end
 
 --- Register with sidekick and make it the active backend. Called from the
---- sidekick spec after `setup()`, because sidekick validates `mux.backend`
+--- sidekick spec after `setup()`, because sidekick validates `mux.backend` (deferred)
 --- against its own two builtins and would reject "herdr" during setup.
 function M.setup()
   if not M.available() then
     return
   end
   require("sidekick.cli.session").register("herdr", M)
-  Config.cli.mux.backend = "herdr"
+  -- sidekick validates mux.backend in a vim.schedule callback from setup();
+  -- queue the swap behind it or it rejects "herdr" with an error popup.
+  vim.schedule(function()
+    Config.cli.mux.backend = "herdr"
+  end)
 end
 
 return M
