@@ -78,6 +78,19 @@ check("keys: timeoutlen is 300 and stated in options.lua", function()
 	assert(vim.o.timeoutlen == 300, "timeoutlen is " .. vim.o.timeoutlen)
 end)
 
+check("clipboard: Herdr sessions use the remote clipboard provider", function()
+	local pane = vim.env.HERDR_PANE_ID
+	local clipboard = vim.g.clipboard
+	vim.env.HERDR_PANE_ID = "test"
+	vim.g.clipboard = nil
+	require("config.remote_clipboard").setup()
+	assert(vim.g.clipboard.name == "OmarchyRemoteClipboard", "remote clipboard provider was not configured")
+	assert(type(vim.g.clipboard.copy["+"]) == "function", "remote clipboard copy handler is missing")
+	assert(type(vim.g.clipboard.paste["+"]) == "function", "remote clipboard paste handler is missing")
+	vim.env.HERDR_PANE_ID = pane
+	vim.g.clipboard = clipboard
+end)
+
 check("keys: <leader>/ is the built-in gc toggle", function()
 	local rhs
 	for _, m in ipairs(vim.api.nvim_get_keymap("n")) do
