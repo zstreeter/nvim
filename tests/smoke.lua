@@ -100,23 +100,78 @@ check("keys: <C-j>/<C-k> owned by neoscroll alone", function()
 end)
 
 -- ── omarchy theme seam ──────────────────────────────────────────────────
-check("theme: adapter returns a name or nil, and a colorscheme applied", function()
+check("theme: Quattro link resolves and active colorscheme applied", function()
 	local name = require("config.omarchy").get_colorscheme()
 	assert(name == nil or type(name) == "string", "adapter returned " .. type(name))
 	assert(vim.g.colors_name and #vim.g.colors_name > 0, "no colorscheme applied")
-	-- adapter results must be real colorschemes — never the raw repo-ish name
+
+	local active = vim.fn.expand("~/.local/state/omarchy/current/theme/neovim.lua")
+	if vim.fn.filereadable(active) == 1 then
+		local link = vim.fn.stdpath("config") .. "/lua/plugins/theme.lua"
+		assert(vim.uv.fs_lstat(link) and vim.uv.fs_lstat(link).type == "link", "Quattro theme link is missing")
+		assert(vim.uv.fs_realpath(link) == vim.uv.fs_realpath(active), "Quattro theme link has the wrong target")
+		assert(name, "Quattro theme exists but adapter returned nil")
+
+		local theme_plugin
+		for _, spec in ipairs(require("plugins.theme")) do
+			if spec[1] and spec[1] ~= "LazyVim/LazyVim" then
+				theme_plugin = spec
+				break
+			end
+		end
+		local registered = false
+		for _, plugin in pairs(require("lazy.core.config").plugins) do
+			if plugin[1] == theme_plugin[1] then
+				local meta = getmetatable(plugin)
+				while meta do
+					local fragment = rawget(meta, "__index")
+					registered = registered or vim.deep_equal(fragment, theme_plugin)
+					meta = type(fragment) == "table" and getmetatable(fragment) or nil
+				end
+			end
+		end
+		assert(registered, "Quattro theme plugin was not registered by lazy.nvim")
+	end
+
 	if name then
 		assert(vim.tbl_contains(vim.fn.getcompletion("", "color"), name), name .. " is not an available colorscheme")
-		-- applied scheme may flavour-expand (catppuccin-nvim → catppuccin-mocha);
-		-- compare theme roots, not exact names
 		local applied = vim.g.colors_name
-		local root = function(s)
-			return s:match("^[^-]+")
+		if name == "catppuccin" then
+			assert(vim.startswith(applied, "catppuccin"), "catppuccin alias applied " .. applied)
+		else
+			assert(applied == name, ("omarchy says %s but %s is active"):format(name, applied))
 		end
-		assert(root(applied) == root(name), ("omarchy says %s but %s is active"):format(name, applied))
 	else
 		assert(vim.startswith(vim.g.colors_name, "catppuccin"), "fallback should be catppuccin, got " .. vim.g.colors_name)
 	end
+end)
+
+check("theme: adapter permits non-Omarchy fallback", function()
+	local loaded = package.loaded["plugins.theme"]
+	local preload = package.preload["plugins.theme"]
+	package.loaded["plugins.theme"] = nil
+	package.preload["plugins.theme"] = function()
+		error("simulated non-Omarchy host")
+	end
+	local name = require("config.omarchy").get_colorscheme()
+	package.preload["plugins.theme"] = preload
+	package.loaded["plugins.theme"] = loaded
+	assert(name == nil, "adapter should return nil without an Omarchy theme")
+
+	local adapter = require("config.omarchy")
+	local get_colorscheme = adapter.get_colorscheme
+	local colorscheme_module = package.loaded["config.colorscheme"]
+	local active = vim.g.colors_name
+	adapter.get_colorscheme = function()
+		return nil
+	end
+	package.loaded["config.colorscheme"] = nil
+	vim.cmd.colorscheme("default")
+	require("config.colorscheme")
+	assert(vim.startswith(vim.g.colors_name, "catppuccin"), "non-Omarchy fallback was not applied")
+	adapter.get_colorscheme = get_colorscheme
+	package.loaded["config.colorscheme"] = colorscheme_module
+	vim.cmd.colorscheme(active)
 end)
 
 check("theme: lualine namespace shadow is gone and lualine boots", function()

@@ -19,7 +19,7 @@ refactors should use these names.
   full binding centralization was deliberately not done.
 - **Omarchy theme adapter** (`lua/config/omarchy.lua`) — the only code that
   knows omarchy hands us a LazyVim-shaped spec via the
-  `lua/plugins/omarchy-theme.lua` symlink. Interface:
+  `lua/plugins/theme.lua` symlink. Interface:
   `get_colorscheme() → string|nil` (validated against available colorschemes,
   repo-ish names normalized). `colorscheme.lua` consumes it; catppuccin is
   the non-omarchy fallback.

@@ -1,6 +1,6 @@
 -- Adapter for the omarchy theme switcher — the only place that knows how
--- omarchy hands us a theme. Omarchy manages lua/plugins/omarchy-theme.lua as
--- a symlink into ~/.config/omarchy/current/theme/neovim.lua whose contents
+-- omarchy hands us a theme. Omarchy manages lua/plugins/theme.lua as
+-- a symlink into ~/.local/state/omarchy/current/theme/neovim.lua whose contents
 -- are a LazyVim plugin-spec list (the file also stays under lua/plugins/ so
 -- lazy.nvim installs the theme plugin it names). That foreign spec shape is
 -- this adapter's private implementation; callers get a colorscheme name.
@@ -16,7 +16,7 @@ end
 -- colorscheme ("catppuccin-nvim") — normalizing that is this adapter's job,
 -- so callers never silently land on the fallback for a fixable name.
 function M.get_colorscheme()
-	local ok, specs = pcall(require, "plugins.omarchy-theme")
+	local ok, specs = pcall(require, "plugins.theme")
 	if not ok or type(specs) ~= "table" then
 		return nil
 	end
@@ -28,7 +28,22 @@ function M.get_colorscheme()
 			plugin_name = spec.name
 		end
 	end
-	for _, candidate in ipairs({ declared, declared and declared:gsub("%-nvim$", ""), plugin_name }) do
+	local candidates = {}
+	if declared then
+		local normalized = (declared:gsub("%-nvim$", ""))
+		if declared == "catppuccin-nvim" then
+			table.insert(candidates, normalized)
+		else
+			table.insert(candidates, declared)
+			if normalized ~= declared then
+				table.insert(candidates, normalized)
+			end
+		end
+	end
+	if plugin_name then
+		table.insert(candidates, plugin_name)
+	end
+	for _, candidate in ipairs(candidates) do
 		if is_available(candidate) then
 			return candidate
 		end

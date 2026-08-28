@@ -11,6 +11,9 @@ git clone <this-repo> ~/.config/nvim
 nvim   # lazy.nvim bootstraps and installs plugins on first run
 ```
 
+On Omarchy Quattro, the zfiles bootstrap links `lua/plugins/theme.lua` to the
+active generated theme. Elsewhere this config uses Catppuccin as its fallback.
+
 External tools the config relies on (install via your package manager):
 `ripgrep`, `fd`, `node` (Copilot), and the AI CLIs you actually use
 (`claude`, `opencode`, `pi`).

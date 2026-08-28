@@ -28,7 +28,7 @@ lua/config/
   └── lsp.lua             # LSP module: capabilities, diagnostics, LspAttach keymaps
 lsp/                      # Per-server overrides — PURE settings tables, no require()
 lua/plugins/              # lazy.nvim specs (subdirs: ai/, lang/, lsp/, ui/)
-  └── omarchy-theme.lua   # Symlink managed by omarchy — do not edit
+  └── theme.lua           # Quattro symlink into active Omarchy state — do not edit
 tests/smoke.{sh,lua}      # Headless boot + assertion suite
 ```
 
