@@ -9,11 +9,20 @@ keymap("n", "<C-i>", "<C-i>", opts)
 
 keymap("n", "<leader>w", "<cmd>w<cr>", opts)
 
--- Better window navigation
-keymap("n", "<m-h>", "<C-w>h", opts)
-keymap("n", "<m-j>", "<C-w>j", opts)
-keymap("n", "<m-k>", "<C-w>k", opts)
-keymap("n", "<m-l>", "<C-w>l", opts)
+-- Better window navigation, in terminal mode too: Snacks.terminal() with no cmd
+-- is a bottom split, so wincmd reaches it like any other window.
+--
+-- Floats decline. A floating window has no place in the layout, and wincmd from
+-- one lands on the last-accessed window no matter which direction you asked
+-- for -- so a picker or lazygit would answer "yes, I moved" to all four. Same
+-- rule zfiles' herdr-nav applies over RPC, so SUPER and <m-…> behave alike.
+for _, dir in ipairs({ "h", "j", "k", "l" }) do
+	keymap({ "n", "t" }, "<m-" .. dir .. ">", function()
+		if vim.api.nvim_win_get_config(0).relative == "" then
+			vim.cmd.wincmd(dir)
+		end
+	end, opts)
+end
 keymap("n", "<m-tab>", "<c-6>", opts)
 
 keymap("n", "n", "nzz", opts)
