@@ -9,12 +9,16 @@ keymap("n", "<C-i>", "<C-i>", opts)
 
 keymap("n", "<leader>w", "<cmd>w<cr>", opts)
 
--- Better window navigation
-keymap("n", "<m-h>", "<C-w>h", opts)
-keymap("n", "<m-j>", "<C-w>j", opts)
-keymap("n", "<m-k>", "<C-w>k", opts)
-keymap("n", "<m-l>", "<C-w>l", opts)
 keymap("n", "<m-tab>", "<c-6>", opts)
+
+local open_shell = function()
+	require("config.herdr").open_pane()
+end
+keymap("n", "<c-/>", open_shell, { desc = "Open Herdr Pane" })
+keymap("n", "<c-_>", open_shell, { desc = "Open Herdr Pane" })
+keymap("n", "<leader>gg", function()
+	require("config.herdr").open_pane({ "lazygit" })
+end, { desc = "Lazygit in Herdr Pane" })
 
 keymap("n", "n", "nzz", opts)
 keymap("n", "N", "Nzz", opts)
@@ -54,5 +58,3 @@ keymap({ "n", "x" }, "k", "gk", opts)
 keymap("n", "<s-tab>", "<cmd>tabnew %<cr>", opts)
 keymap({ "n" }, "<s-h>", "<cmd>tabp<cr>", opts)
 keymap({ "n" }, "<s-l>", "<cmd>tabn<cr>", opts)
-
-vim.api.nvim_set_keymap("t", "<C-;>", "<C-\\><C-n>", opts)

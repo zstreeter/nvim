@@ -58,7 +58,7 @@ auto-imports it. Each spec returns a single table.
 | Code (LSP)     | `<leader>c`  | `ca` code action · `cR` rename file                       |
 | Diagnostics    | `<leader>d`  | `dj` / `dk` next/prev                                     |
 | Find           | `<leader>f`  | `ff` files · `fg` git files · `fk` keymaps · …            |
-| Git            | `<leader>g`  | `gg` lazygit · `gs` status · `gd` diff · `gB` browse      |
+| Git            | `<leader>g`  | `gg` lazygit (Herdr pane) · `gs` status · `gd` diff · `gB` browse |
 | LSP            | `<leader>l`  | `lf` format · `lr` rename                                 |
 | Mail           | `<leader>m`  | (himalaya)                                                |
 | Obsidian       | `<leader>o`  | `oo` switch · `on` new · `og` grep                        |

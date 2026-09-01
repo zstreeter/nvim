@@ -297,6 +297,53 @@ check("herdr: setup is a no-op outside a herdr pane", function()
 	assert(Config.cli.mux.backend == before, "backend was hijacked while outside herdr")
 end)
 
+-- ── pane and window navigation ──────────────────────────────────────────
+check("herdr: shell and TUI shortcuts open real panes", function()
+	local herdr = require("config.herdr")
+	local Util = require("sidekick.util")
+	local available, exec = herdr.available, Util.exec
+	local calls = {}
+	herdr.available = function()
+		return true
+	end
+	Util.exec = function(cmd)
+		calls[#calls + 1] = cmd
+		if cmd[3] == "split" then
+			return nil, vim.json.encode({ result = { pane = { pane_id = "test-pane" } } })
+		end
+	end
+	local shell = vim.fn.maparg("<c-/>", "n", false, true).callback
+	local lazygit = vim.fn.maparg("<leader>gg", "n", false, true).callback
+	assert(type(shell) == "function" and type(lazygit) == "function", "herdr pane shortcuts are missing")
+	shell()
+	lazygit()
+	herdr.available, Util.exec = available, exec
+
+	local split = {
+		"herdr",
+		"pane",
+		"split",
+		"--current",
+		"--direction",
+		"right",
+		"--ratio",
+		"0.45",
+		"--cwd",
+		vim.fn.getcwd(),
+		"--focus",
+	}
+	assert(vim.deep_equal(calls[1], split), "shell shortcut did not split a focused herdr pane")
+	assert(vim.deep_equal(calls[2], split), "lazygit shortcut did not split a focused herdr pane")
+	assert(
+		vim.deep_equal(calls[3], { "herdr", "pane", "run", "test-pane", "lazygit" }),
+		"lazygit was not run in the new pane"
+	)
+	for _, dir in ipairs({ "h", "j", "k", "l" }) do
+		assert(vim.fn.maparg("<m-" .. dir .. ">", "n") == "", "local window navigation bypasses SUPER+hjkl")
+		assert(vim.fn.maparg("<m-" .. dir .. ">", "t") == "", "terminal navigation bypasses SUPER+hjkl")
+	end
+end)
+
 -- ── result ──────────────────────────────────────────────────────────────
 if #failures == 0 then
 	print("SMOKE-PASS")

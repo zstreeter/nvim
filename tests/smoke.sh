@@ -30,4 +30,11 @@ if grep -rn 'require(' lsp/ >/dev/null 2>&1; then
 	exit 1
 fi
 
+# structural: interactive shells and TUIs belong in real Herdr panes
+embedded=$(grep -Ern 'Snacks\.(terminal|lazygit)|termopen|vim\.cmd.*terminal' lua/ || true)
+if [ -n "$embedded" ]; then
+	echo "embedded terminal usage is forbidden; use config.herdr.open_pane:"; echo "$embedded"
+	exit 1
+fi
+
 echo PASS
