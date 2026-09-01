@@ -48,6 +48,40 @@ function M.panes()
   return res and res.panes or {}
 end
 
+--- Open a focused herdr pane, optionally running a command in it.
+---@param cmd? string[]
+function M.open_pane(cmd)
+  if not M.available() then
+    Util.error("herdr is unavailable")
+    return
+  end
+
+  local res = api({
+    "herdr",
+    "pane",
+    "split",
+    "--current",
+    "--direction",
+    "right",
+    "--ratio",
+    "0.45",
+    "--cwd",
+    vim.fn.getcwd(),
+    "--focus",
+  })
+  local pane = res and res.pane
+  if not pane then
+    Util.error("herdr: failed to split a pane")
+    return
+  end
+
+  if cmd then
+    local run = { "herdr", "pane", "run", pane.pane_id }
+    vim.list_extend(run, cmd)
+    Util.exec(run)
+  end
+end
+
 --- herdr classifies the agent running in each pane itself, so unlike the tmux
 --- backend there is no process tree to walk — a pane's `agent` is the tool name.
 ---@param panes? table[] injectable for tests; defaults to a live `pane list`

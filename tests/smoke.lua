@@ -297,57 +297,50 @@ check("herdr: setup is a no-op outside a herdr pane", function()
 	assert(Config.cli.mux.backend == before, "backend was hijacked while outside herdr")
 end)
 
--- ── window navigation seam (zfiles herdr-nav depends on this) ───────────
--- SUPER+hjkl is arbitrated nvim → herdr → WM by zfiles' herdr-nav/herdr-navd.
--- The nvim hop is `wincmd <dir>` over RPC, and it reads "did the current window
--- change?" as "nvim consumed the move". These checks pin the assumptions that
--- answer relies on.
-check("nav: Snacks.terminal() is a split, not a float", function()
-	vim.cmd("silent! only")
-	Snacks.terminal()
-	local win = vim.api.nvim_get_current_win()
-	assert(vim.bo.buftype == "terminal", "not in a terminal buffer: " .. vim.bo.buftype)
-	-- A float would be invisible to directional wincmd, so SUPER+hjkl could
-	-- neither reach the terminal nor leave it in the direction asked for.
-	assert(vim.api.nvim_win_get_config(win).relative == "", "terminal opened as a float")
-	vim.cmd.wincmd("k")
-	assert(vim.api.nvim_get_current_win() ~= win, "wincmd k could not leave the terminal split")
-	vim.cmd.wincmd("j")
-	assert(vim.api.nvim_get_current_win() == win, "wincmd j could not re-enter the terminal split")
-	vim.cmd("silent! only")
-end)
-
-check("nav: <m-h> declines from a float instead of faking a move", function()
-	vim.cmd("silent! only")
-	vim.cmd("vsplit")
-	local float = vim.api.nvim_open_win(vim.api.nvim_create_buf(false, true), true, {
-		relative = "editor",
-		row = 1,
-		col = 1,
-		width = 10,
-		height = 5,
-	})
-	-- Bare wincmd from a float always "moves" — that is the trap the guard
-	-- exists for, so assert the trap is still real before asserting the guard.
-	for _, dir in ipairs({ "h", "j", "k", "l" }) do
-		vim.api.nvim_set_current_win(float)
-		vim.cmd.wincmd(dir)
-		assert(vim.api.nvim_get_current_win() ~= float, "wincmd " .. dir .. " no longer escapes a float")
+-- ── pane and window navigation ──────────────────────────────────────────
+check("herdr: shell and TUI shortcuts open real panes", function()
+	local herdr = require("config.herdr")
+	local Util = require("sidekick.util")
+	local available, exec = herdr.available, Util.exec
+	local calls = {}
+	herdr.available = function()
+		return true
 	end
-	for _, dir in ipairs({ "h", "j", "k", "l" }) do
-		vim.api.nvim_set_current_win(float)
-		local rhs = vim.fn.maparg("<m-" .. dir .. ">", "n", false, true).callback
-		assert(type(rhs) == "function", "<m-" .. dir .. "> is not a lua map")
-		rhs()
-		assert(vim.api.nvim_get_current_win() == float, "<m-" .. dir .. "> moved out of a float")
+	Util.exec = function(cmd)
+		calls[#calls + 1] = cmd
+		if cmd[3] == "split" then
+			return nil, vim.json.encode({ result = { pane = { pane_id = "test-pane" } } })
+		end
 	end
-	vim.api.nvim_win_close(float, true)
-	vim.cmd("silent! only")
-end)
+	local shell = vim.fn.maparg("<c-/>", "n", false, true).callback
+	local lazygit = vim.fn.maparg("<leader>gg", "n", false, true).callback
+	assert(type(shell) == "function" and type(lazygit) == "function", "herdr pane shortcuts are missing")
+	shell()
+	lazygit()
+	herdr.available, Util.exec = available, exec
 
-check("nav: <m-hjkl> reach terminal mode", function()
+	local split = {
+		"herdr",
+		"pane",
+		"split",
+		"--current",
+		"--direction",
+		"right",
+		"--ratio",
+		"0.45",
+		"--cwd",
+		vim.fn.getcwd(),
+		"--focus",
+	}
+	assert(vim.deep_equal(calls[1], split), "shell shortcut did not split a focused herdr pane")
+	assert(vim.deep_equal(calls[2], split), "lazygit shortcut did not split a focused herdr pane")
+	assert(
+		vim.deep_equal(calls[3], { "herdr", "pane", "run", "test-pane", "lazygit" }),
+		"lazygit was not run in the new pane"
+	)
 	for _, dir in ipairs({ "h", "j", "k", "l" }) do
-		assert(vim.fn.maparg("<m-" .. dir .. ">", "t") ~= "", "<m-" .. dir .. "> missing in terminal mode")
+		assert(vim.fn.maparg("<m-" .. dir .. ">", "n") == "", "local window navigation bypasses SUPER+hjkl")
+		assert(vim.fn.maparg("<m-" .. dir .. ">", "t") == "", "terminal navigation bypasses SUPER+hjkl")
 	end
 end)
 

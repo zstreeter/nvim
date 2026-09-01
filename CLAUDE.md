@@ -42,6 +42,10 @@ tests/smoke.{sh,lua}      # Headless boot + assertion suite
   `lua/plugins/snacks.lua`; `config/lsp.lua` must not duplicate them.
 - **Commenting** is built-in `gc`/`gcc` (`<leader>/` in keymaps.lua);
   ts-context-commentstring keeps JSX/TSX commentstrings correct.
+- **Interactive shells and TUIs** open through `config.herdr.open_pane()`;
+  embedded Neovim/Snacks terminals are forbidden (smoke enforces).
+- **Navigation** is system-wide `SUPER+hjkl`, arbitrated by zfiles across
+  Neovim splits, Herdr panes, and windows; do not add local `<m-hjkl>` maps.
 - Run `tests/smoke.sh` after structural changes; add a check when you add a
   seam. It must pass before committing.
 
