@@ -820,6 +820,17 @@ check("save: prose is left alone, code is trimmed", function()
 	vim.fn.delete(dir, "rf")
 end)
 
+check("clingo: .lp is clingo, % comments, potassco grammar registered", function()
+	vim.cmd("edit " .. vim.fn.tempname() .. ".lp")
+	assert(vim.bo.filetype == "clingo", ".lp detected as " .. vim.bo.filetype)
+	assert(vim.bo.commentstring == "% %s", "commentstring " .. vim.bo.commentstring)
+	require("lazy").load({ plugins = { "nvim-treesitter" } })
+	vim.api.nvim_exec_autocmds("User", { pattern = "TSUpdate" })
+	local info = require("nvim-treesitter.parsers").clingo
+	assert(info and info.install_info.url:find("potassco/tree-sitter-clingo", 1, true), "clingo parser not registered")
+	vim.cmd("bwipeout!")
+end)
+
 -- ── LSP overrides / obsidian gating ─────────────────────────────────────
 check("lsp: after/lsp overrides win over nvim-lspconfig's bundled configs", function()
 	local tw = vim.lsp.config.tailwindcss
