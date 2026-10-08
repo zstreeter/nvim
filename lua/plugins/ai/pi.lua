@@ -2,14 +2,22 @@ return {
 	"pablopunk/pi.nvim",
 	cmd = { "PiAsk", "PiAskSelection", "PiCancel", "PiLog" },
 	opts = {
-		-- Leave provider/model unset to use pi's default config (`pi --list-models`).
-		-- Examples:
-		--   { provider = "openrouter", model = "moonshotai/kimi-k2.5" }
-		--   { provider = "openrouter", model = "deepseek/deepseek-chat" }
-		--   { provider = "anthropic",  model = "claude-haiku-4-5" }
-		max_context_lines = 300,
-		max_context_bytes = 24000,
-		selection_context_lines = 40,
+		-- provider/model unset: :PiAsk follows pi's own defaults
+		-- (~/.config/pi/agent/settings.json), so the two never drift apart.
+		thinking = "off",
+
+		context = {
+			max_bytes = 24000,
+			ask = { surrounding_lines = 80 },
+			selection = { surrounding_lines = 40 },
+			-- Send LSP/linter diagnostics along with the buffer.
+			diagnostics = { enabled = true },
+		},
+
+		-- :PiAsk is a one-shot; skill descriptions and extensions are dead
+		-- weight in its system prompt. Use the CLI when you want those.
+		skills = false,
+		extensions = false,
 	},
 	config = function(_, opts)
 		require("pi").setup(opts)
