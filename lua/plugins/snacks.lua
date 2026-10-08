@@ -51,7 +51,7 @@ return {
 		scope = { enabled = true },
 		scroll = { enabled = false },
 		statuscolumn = { enabled = false },
-		words = { enabled = false },
+		words = { enabled = true }, -- reference highlight + ]] / [[ (replaced vim-illuminate)
 		styles = {
 			notification = {
 				-- wo = { wrap = true } -- Wrap notifications
@@ -96,13 +96,6 @@ return {
 			desc = "Notification History",
 		},
 		-- find
-		{
-			"<leader>fb",
-			function()
-				Snacks.picker.buffers()
-			end,
-			desc = "Buffers",
-		},
 		{
 			"<leader>fc",
 			function()
@@ -204,13 +197,6 @@ return {
 			desc = "Grep Open Buffers",
 		},
 		{
-			"<leader>ft",
-			function()
-				Snacks.picker.grep()
-			end,
-			desc = "Grep",
-		},
-		{
 			"<leader>fw",
 			function()
 				Snacks.picker.grep_word()
@@ -281,13 +267,6 @@ return {
 				Snacks.picker.jumps()
 			end,
 			desc = "Jumps",
-		},
-		{
-			"<leader>fk",
-			function()
-				Snacks.picker.keymaps()
-			end,
-			desc = "Keymaps",
 		},
 		{
 			"<leader>?",
@@ -453,7 +432,6 @@ return {
 				Snacks.words.jump(vim.v.count1)
 			end,
 			desc = "Next Reference",
-			mode = { "n", "t" },
 		},
 		{
 			"[[",
@@ -461,7 +439,6 @@ return {
 				Snacks.words.jump(-vim.v.count1)
 			end,
 			desc = "Prev Reference",
-			mode = { "n", "t" },
 		},
 		{
 			"<leader>N",

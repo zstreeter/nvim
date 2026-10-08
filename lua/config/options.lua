@@ -13,7 +13,7 @@ opt.mouse = "a" -- allow the mouse to be used in neovim
 opt.pumheight = 10 -- pop up menu height
 opt.pumblend = 10
 opt.showmode = false -- we don't need to see things like -- INSERT -- anymore
-opt.showtabline = 1 -- always show tabs
+opt.showtabline = 1 -- tabline only when there are 2+ tabs
 opt.smartcase = true -- smart case
 opt.autoindent = true
 opt.smartindent = true -- make indenting smarter again
@@ -35,7 +35,7 @@ opt.laststatus = 3
 opt.showcmd = false
 opt.ruler = false
 opt.relativenumber = true -- set relative numbered lines
-opt.numberwidth = 4 -- set number column width to 2 {default 4}
+opt.numberwidth = 4
 opt.signcolumn = "yes" -- always show the sign column, otherwise it would shift the text each time
 opt.wrap = false -- display lines as one long line
 opt.scrolloff = 0
@@ -52,6 +52,6 @@ opt.fillchars:append({
 
 opt.shortmess:append("c")
 
-vim.cmd("set whichwrap+=<,>,[,],h,l")
+opt.whichwrap:append("<,>,[,],h,l")
 opt.iskeyword:append("-")
 

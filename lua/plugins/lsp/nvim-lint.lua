@@ -27,7 +27,8 @@ return {
 		-- Create autocommand to trigger linting
 		local lint_augroup = vim.api.nvim_create_augroup("lint", { clear = true })
 
-		vim.api.nvim_create_autocmd({ "BufEnter", "BufWritePost", "InsertLeave" }, {
+		-- Not BufEnter: that re-ran pylint on every buffer switch.
+		vim.api.nvim_create_autocmd({ "BufReadPost", "BufWritePost", "InsertLeave" }, {
 			group = lint_augroup,
 			callback = function()
 				lint.try_lint()
@@ -35,7 +36,7 @@ return {
 		})
 
 		-- Create a keymap to manually trigger linting
-		vim.keymap.set("n", "<leader>ll", function()
+		vim.keymap.set("n", "<leader>cl", function()
 			lint.try_lint()
 		end, { desc = "Trigger linting for current file" })
 	end,

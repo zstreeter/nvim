@@ -28,11 +28,10 @@ check("icons: diagnostic signs use the shared table", function()
 	assert(signs.text[vim.diagnostic.severity.ERROR] == i.diagnostics.Error, "sign column drifted from icons module")
 end)
 
-check("icons: blink/lspkind boots against the shared table", function()
+check("icons: blink kind icons come from the shared table", function()
 	require("lazy").load({ plugins = { "blink.cmp" } })
-	local lspkind = require("lspkind")
-	local sym = lspkind.symbolic("Function", { mode = "symbol" })
-	assert(type(sym) == "string" and #sym > 0, "lspkind returned no symbol")
+	local kinds = require("blink.cmp.config").appearance.kind_icons
+	assert(kinds.Function == require("config.icons").kind.Function, "blink kind_icons drifted from icons module")
 end)
 
 check("icons: breadcrumbs/navic boots against the shared table", function()
@@ -59,7 +58,7 @@ end)
 -- ── keymap registry ─────────────────────────────────────────────────────
 check("keys: registry loads, has groups, rejects duplicates", function()
 	local keys = require("config.keys")
-	assert(#keys.groups >= 14, "expected >=14 group entries, got " .. #keys.groups)
+	assert(#keys.groups >= 12, "expected >=12 group entries, got " .. #keys.groups)
 	local prefixes = {}
 	for _, g in ipairs(keys.groups) do
 		assert(not prefixes[g[1]], "duplicate prefix " .. g[1])
@@ -67,6 +66,24 @@ check("keys: registry loads, has groups, rejects duplicates", function()
 	end
 	assert(prefixes["<leader>q"] and prefixes["<leader>Q"], "quickfix/quarto groups missing")
 	assert(not prefixes["<leader>r"], "phantom rename/restart group is back")
+end)
+
+check("keys: every <leader>xy mapping belongs to a registered group", function()
+	local groups = {}
+	for _, g in ipairs(require("config.keys").groups) do
+		groups[g[1]:gsub("^<leader>", "")] = true
+	end
+	local leader = vim.g.mapleader
+	local strays = {}
+	for _, mode in ipairs({ "n", "x" }) do
+		for _, m in ipairs(vim.api.nvim_get_keymap(mode)) do
+			local rest = m.lhs:sub(1, #leader) == leader and m.lhs:sub(#leader + 1) or nil
+			if rest and #rest >= 2 and not groups[rest:sub(1, 1)] then
+				strays[#strays + 1] = mode .. " <leader>" .. rest
+			end
+		end
+	end
+	assert(#strays == 0, "no registered group for: " .. table.concat(strays, ", "))
 end)
 
 check("keys: which-key consumes the registry", function()
@@ -770,6 +787,48 @@ check("mail-browse: list renders, <CR> reads in a normal split and marks seen", 
 	end)
 	mc.himalaya = real
 	assert(ok, err)
+end)
+
+-- ── editor behaviour ────────────────────────────────────────────────────
+check("autocmd: VimResized equalizes splits without leaving the current tab", function()
+	vim.cmd("tabnew")
+	vim.cmd("tabnew")
+	vim.cmd("tabprevious")
+	local before = vim.fn.tabpagenr()
+	vim.api.nvim_exec_autocmds("VimResized", {})
+	assert(vim.fn.tabpagenr() == before, "VimResized moved to tab " .. vim.fn.tabpagenr())
+	vim.cmd("tabonly")
+end)
+
+check("lualine: LSP diagnostics are counted once", function()
+	local src = require("lualine").get_config().sections.lualine_b[3].sources
+	assert(not vim.tbl_contains(src, "nvim_lsp"), "nvim_lsp duplicates nvim_diagnostic")
+end)
+
+check("save: prose is left alone, code is trimmed", function()
+	local dir = vim.fn.tempname()
+	vim.fn.mkdir(dir, "p")
+	local function saved(name, line)
+		vim.cmd("edit " .. dir .. "/" .. name)
+		vim.api.nvim_buf_set_lines(0, 0, -1, false, { line })
+		vim.cmd("write")
+		return vim.fn.readfile(dir .. "/" .. name)[1]
+	end
+	assert(saved("a.md", "hard break  ") == "hard break  ", "markdown trailing spaces stripped on save")
+	assert(saved("b.sh", "echo hi   ") == "echo hi", "code not trimmed on save")
+	vim.cmd("%bwipeout!")
+	vim.fn.delete(dir, "rf")
+end)
+
+check("clingo: .lp is clingo, % comments, potassco grammar registered", function()
+	vim.cmd("edit " .. vim.fn.tempname() .. ".lp")
+	assert(vim.bo.filetype == "clingo", ".lp detected as " .. vim.bo.filetype)
+	assert(vim.bo.commentstring == "% %s", "commentstring " .. vim.bo.commentstring)
+	require("lazy").load({ plugins = { "nvim-treesitter" } })
+	vim.api.nvim_exec_autocmds("User", { pattern = "TSUpdate" })
+	local info = require("nvim-treesitter.parsers").clingo
+	assert(info and info.install_info.url:find("potassco/tree-sitter-clingo", 1, true), "clingo parser not registered")
+	vim.cmd("bwipeout!")
 end)
 
 -- ── LSP overrides / obsidian gating ─────────────────────────────────────

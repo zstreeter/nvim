@@ -3,13 +3,12 @@
 -- `keys={}` specs stay in plugin files so lazy-loading keeps working).
 --
 -- Prefix ownership (where the handlers live):
---   <leader>a   ai/{copilot,opencode,pi,sidekick}.lua
+--   <leader>a   ai/{opencode,pi,sidekick}.lua
 --   <leader>b   snacks.lua (bufdelete)
---   <leader>c   lsp.lua (code action), snacks.lua (rename file)
---   <leader>d   lsp.lua (diagnostic jumps)
+--   <leader>c   lsp.lua (action, rename), lsp/{conform,nvim-lint}.lua (format, lint),
+--               snacks.lua (rename file)
 --   <leader>f   snacks.lua (pickers), lang/zotero-pdf.lua (<leader>fz)
---   <leader>g   snacks.lua (git pickers, lazygit)
---   <leader>l   lsp.lua (rename), lsp/{conform,nvim-lint}.lua (format/lint)
+--   <leader>g   snacks.lua (git pickers), keymaps.lua (lazygit in Herdr)
 --   <leader>m   config/mail-browse.lua (setup() from init.lua; no plugin)
 --   <leader>o   lang/obsidian.lua
 --   <leader>q   bqf.lua (quickfix)
@@ -25,11 +24,9 @@ local M = {}
 M.groups = {
 	{ "<leader>a", group = "AI" },
 	{ "<leader>b", group = "buffer" },
-	{ "<leader>c", group = "code" },
-	{ "<leader>d", group = "diagnostics" },
+	{ "<leader>c", group = "code/LSP" },
 	{ "<leader>f", group = "find" },
 	{ "<leader>g", group = "git" },
-	{ "<leader>l", group = "LSP" },
 	{ "<leader>m", group = "mail" },
 	{ "<leader>o", group = "obsidian" },
 	{ "<leader>s", group = "search/symbols" },

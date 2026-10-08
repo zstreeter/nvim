@@ -15,7 +15,7 @@ On Omarchy Quattro, the zfiles bootstrap links `lua/plugins/theme.lua` to the
 active generated theme. Elsewhere this config uses Catppuccin as its fallback.
 
 External tools the config relies on (install via your package manager):
-`ripgrep`, `fd`, `node` (Copilot), and the AI CLIs you actually use
+`ripgrep`, `fd`, `node` (LSP servers), and the AI CLIs you actually use
 (`claude`, `opencode`, `pi`).
 
 ## Layout
@@ -31,7 +31,7 @@ lua/config/
   lsp.lua                     # vim.lsp.config + LspAttach keymaps
   servers.lua                 # shared LSP server / formatter list
 lua/plugins/                  # plugin specs — auto-imported by lazy
-  ai/                         # copilot, sidekick, opencode, pi
+  ai/                         # sidekick, opencode, pi
   lsp/                        # mason, lspconfig, conform, nvim-lint, lazydev
   lang/                       # per-language plugins (unreal, latex, obsidian…)
   ui/                         # theme, transparent, lualine, …

@@ -25,7 +25,7 @@ return {
 				python = { "isort", "black" },
 
 				-- Go
-				go = { "gofmt", "goimports" },
+				go = { "goimports" }, -- goimports also gofmts
 
 				-- Rust
 				rust = { "rustfmt" },
@@ -44,10 +44,14 @@ return {
 			default_format_opts = {
 				lsp_format = "fallback",
 			},
-			format_on_save = {
-				timeout_ms = 500,
-				lsp_format = "fallback",
-			},
+			-- Prose is never rewritten on save: prettier and trim_whitespace mangle
+			-- math, [[wikilinks]] and two-space hard breaks. <leader>cf still formats.
+			format_on_save = function(buf)
+				if vim.tbl_contains({ "markdown", "quarto" }, vim.bo[buf].filetype) then
+					return
+				end
+				return { timeout_ms = 500, lsp_format = "fallback" }
+			end,
 			-- Customize formatters
 			formatters = {
 				shfmt = {
@@ -57,7 +61,7 @@ return {
 		})
 
 		-- Keybindings
-		vim.keymap.set({ "n", "v" }, "<leader>lf", function()
+		vim.keymap.set({ "n", "v" }, "<leader>cf", function()
 			conform.format({
 				lsp_format = "fallback",
 				async = false,

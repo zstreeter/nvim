@@ -12,6 +12,7 @@ local MAX_FILESIZE = 100 * 1024 -- 100 KB
 local PARSERS = {
 	"bash",
 	"c",
+	"clingo", -- potassco grammar, registered in lang/clingo.lua
 	"cpp",
 	"css",
 	"dockerfile",

@@ -61,7 +61,7 @@ tests/smoke.{sh,lua}      # Headless boot + assertion suite
 ### Modifying core settings
 - Editor options: `lua/config/options.lua`
 - Key mappings: `lua/config/keymaps.lua` (global) / plugin specs (plugin-local)
-- LSP servers: `lua/config/servers.lua` (list) + `lsp/<name>.lua` (settings)
+- LSP servers: `lua/config/servers.lua` (list) + `after/lsp/<name>.lua` (settings)
 
 ### Configuration Flow
 1. `init.lua`: options → keymaps → autocommands → lazy → colorscheme → lsp,
@@ -73,6 +73,6 @@ tests/smoke.{sh,lua}      # Headless boot + assertion suite
 
 - `tests/smoke.sh` is the test infrastructure — headless, no framework
 - The configuration auto-creates directories when saving files
-- Trailing whitespace is automatically removed on save
+- On save, conform formats and trims trailing whitespace — except markdown/quarto, which are never rewritten on save (`<leader>cf` formats manually)
 - Icon glyphs may not survive AI text generation — edit `icons.lua` glyphs
   manually in nvim, or copy bytes with sed

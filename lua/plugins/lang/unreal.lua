@@ -9,6 +9,10 @@
 --   UNL.nvim auto-builds via `cargo build --release` on install.
 return {
 	"taku25/UnrealDev.nvim",
+	-- Only inside an Unreal project: otherwise every C/C++ file loaded the whole suite.
+	cond = vim.fs.root(vim.fn.getcwd(), function(name)
+		return name:match("%.uproject$") ~= nil
+	end) ~= nil,
 	ft = { "cpp", "c", "h", "hpp", "ush", "usf", "verse" },
 	cmd = "UDEV",
 	dependencies = {

@@ -5,7 +5,7 @@ refactors should use these names.
 
 - **Icons module** (`lua/config/icons.lua`) — single source of truth for every
   glyph: LSP `kind` symbols and `diagnostics` severity signs. All four glyph
-  consumers (blink/lspkind, navic breadcrumbs, diagnostic sign column, lualine)
+  consumers (blink kind_icons, navic breadcrumbs, diagnostic sign column, lualine)
   require it; hand-copied glyph tables are forbidden.
 - **LSP module** — `lua/config/lsp.lua` owns the seam: capabilities (computed
   once, blink-extended), diagnostics display, LspAttach keymaps, and

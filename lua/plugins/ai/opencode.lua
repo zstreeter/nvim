@@ -27,7 +27,6 @@ return {
 	config = function()
 		---@type opencode.Opts
 		vim.g.opencode_opts = {}
-		vim.o.autoread = true
 	end,
 	keys = {
 		{

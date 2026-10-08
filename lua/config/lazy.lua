@@ -2,7 +2,7 @@
 vim.g.lazyvim_check_order = false
 
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
 	vim.fn.system({
 		"git",
 		"clone",
@@ -17,7 +17,7 @@ vim.opt.rtp:prepend(lazypath)
 require("lazy").setup({
 	spec = {
 		{ import = "plugins" }, -- root: editor + foundational (snacks, which-key, etc.)
-		{ import = "plugins.ai" }, -- copilot, sidekick, opencode, pi
+		{ import = "plugins.ai" }, -- sidekick, opencode, pi
 		{ import = "plugins.lsp" }, -- mason, lspconfig, conform, nvim-lint, lazydev
 		{ import = "plugins.lang" }, -- per-language plugins (unreal, latex, obsidian, …)
 		{ import = "plugins.ui" }, -- visual: theme, transparent, lualine, …
