@@ -28,11 +28,10 @@ check("icons: diagnostic signs use the shared table", function()
 	assert(signs.text[vim.diagnostic.severity.ERROR] == i.diagnostics.Error, "sign column drifted from icons module")
 end)
 
-check("icons: blink/lspkind boots against the shared table", function()
+check("icons: blink kind icons come from the shared table", function()
 	require("lazy").load({ plugins = { "blink.cmp" } })
-	local lspkind = require("lspkind")
-	local sym = lspkind.symbolic("Function", { mode = "symbol" })
-	assert(type(sym) == "string" and #sym > 0, "lspkind returned no symbol")
+	local kinds = require("blink.cmp.config").appearance.kind_icons
+	assert(kinds.Function == require("config.icons").kind.Function, "blink kind_icons drifted from icons module")
 end)
 
 check("icons: breadcrumbs/navic boots against the shared table", function()

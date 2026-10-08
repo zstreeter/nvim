@@ -96,7 +96,6 @@ return {
 			tabline = {},
 			winbar = {},
 			inactive_winbar = {},
-			-- extensions = { "neo-tree", "lazy" },
 		})
 	end,
 }

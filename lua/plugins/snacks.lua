@@ -51,7 +51,7 @@ return {
 		scope = { enabled = true },
 		scroll = { enabled = false },
 		statuscolumn = { enabled = false },
-		words = { enabled = false },
+		words = { enabled = true }, -- reference highlight + ]] / [[ (replaced vim-illuminate)
 		styles = {
 			notification = {
 				-- wo = { wrap = true } -- Wrap notifications
@@ -453,7 +453,6 @@ return {
 				Snacks.words.jump(vim.v.count1)
 			end,
 			desc = "Next Reference",
-			mode = { "n", "t" },
 		},
 		{
 			"[[",
@@ -461,7 +460,6 @@ return {
 				Snacks.words.jump(-vim.v.count1)
 			end,
 			desc = "Prev Reference",
-			mode = { "n", "t" },
 		},
 		{
 			"<leader>N",

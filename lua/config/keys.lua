@@ -3,7 +3,7 @@
 -- `keys={}` specs stay in plugin files so lazy-loading keeps working).
 --
 -- Prefix ownership (where the handlers live):
---   <leader>a   ai/{copilot,opencode,pi,sidekick}.lua
+--   <leader>a   ai/{opencode,pi,sidekick}.lua
 --   <leader>b   snacks.lua (bufdelete)
 --   <leader>c   lsp.lua (code action), snacks.lua (rename file)
 --   <leader>d   lsp.lua (diagnostic jumps)

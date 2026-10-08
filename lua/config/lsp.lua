@@ -31,19 +31,6 @@ vim.diagnostic.config({
 -- Enable inlay hints
 vim.lsp.inlay_hint.enable(false)
 
--- Default capabilities for every server, extended by blink.cmp when present.
--- This is the ONLY place capabilities are computed; after/lsp/*.lua stay pure data.
-local capabilities = vim.lsp.protocol.make_client_capabilities()
-local blink_ok, blink = pcall(require, "blink.cmp")
-if blink_ok then
-	capabilities = vim.tbl_deep_extend("force", capabilities, blink.get_lsp_capabilities())
-else
-	vim.notify("blink.cmp not available — LSP completion capabilities degraded", vim.log.levels.WARN)
-end
-vim.lsp.config("*", {
-	capabilities = capabilities,
-})
-
 local keymap = vim.keymap
 vim.api.nvim_create_autocmd("LspAttach", {
 	group = vim.api.nvim_create_augroup("UserLspConfig", {}),

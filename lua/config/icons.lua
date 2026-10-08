@@ -1,5 +1,5 @@
 -- Shared icon tables. Single source of truth for every glyph in the config.
--- Callers: blink.lua (lspkind), ui/breadcrumbs.lua (navic), config/lsp.lua
+-- Callers: blink.lua (appearance.kind_icons), ui/breadcrumbs.lua (navic), config/lsp.lua
 -- (diagnostic signs), ui/lualine.lua (statusline diagnostics).
 local M = {}
 
@@ -39,7 +39,6 @@ M.kind = {
 	Value = " ",
 	Variable = " ",
 	Codeium = "󰚩 ",
-	Copilot = " ",
 	LazyDev = "b ",
 }
 
