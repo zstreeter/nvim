@@ -15,5 +15,6 @@ for _, mod in ipairs(modules) do
 end
 
 -- Background services with an explicit lifecycle (stop on VimLeavePre).
--- Uncomment "work" once that account is set up.
-require("config.mail-notify").start({ accounts = { "gmail" } })
+-- also feeds the dashboard counts; polls are async, so start almost at once
+require("config.mail-notify").start({ accounts = { "gmail", "work" }, initial_delay_ms = 200 })
+require("config.mail-browse").setup() -- :Mail and <leader>m

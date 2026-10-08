@@ -344,6 +344,434 @@ check("herdr: shell and TUI shortcuts open real panes", function()
 	end
 end)
 
+check("mail: IMAP STATUS counts, unread()/accounts(), MailUnread fires on change only", function()
+	local mail = require("config.mail-notify")
+	local seq = { '{"unseen":25,"messages":238}', '{"unseen":25,"messages":238}', '{"unseen":27,"messages":240}' }
+	local calls, events = 0, 0
+	local au = vim.api.nvim_create_autocmd("User", { pattern = "MailUnread", callback = function() events = events + 1 end })
+	local orig_notify = vim.notify
+	vim.notify = function() end
+	mail.start({
+		accounts = { "a1" },
+		initial_delay_ms = 5,
+		interval_ms = 30,
+		runner = function(_, on_done)
+			calls = calls + 1
+			on_done(seq[math.min(calls, #seq)])
+		end,
+	})
+	vim.wait(1000, function() return calls >= 3 end)
+	mail.stop()
+	vim.notify = orig_notify
+	vim.api.nvim_del_autocmd(au)
+	assert(mail.unread("a1") == 27, "unread(): " .. tostring(mail.unread("a1")))
+	assert(vim.deep_equal(mail.accounts(), { "a1" }), "accounts()")
+	assert(events == 2, "MailUnread must fire on first count and on change only, fired " .. events)
+end)
+
+check("dashboard: one mail row per account with key and unread count", function()
+	package.loaded["plugins.snacks"] = nil
+	local spec = require("plugins.snacks")
+	local gen
+	for _, sec in ipairs(spec.opts.dashboard.sections) do
+		if type(sec) == "function" then gen = sec end
+	end
+	assert(gen, "no dynamic mail section")
+	local mail = require("config.mail-notify")
+	local orig_notify = vim.notify
+	vim.notify = function() end
+	mail.start({ accounts = { "gmail", "work" }, initial_delay_ms = 5, interval_ms = 100000, runner = function(acct, on_done)
+		on_done(acct == "gmail" and '{"unseen":42}' or '{"unseen":0}')
+	end })
+	vim.wait(500, function() return mail.unread("work") ~= nil end)
+	mail.stop()
+	vim.notify = orig_notify
+	local items = gen()
+	assert(#items == 2, vim.inspect(items))
+	assert(items[1].key == "g" and items[1].desc:find("gmail") and items[1].desc:find("42 unread") and items[1].action == ":Mail gmail", vim.inspect(items[1]))
+	assert(items[2].key == "w" and items[2].desc:find("no unread") and items[2].action == ":Mail work", vim.inspect(items[2]))
+end)
+
+-- ── mail compose ────────────────────────────────────────────────────────
+-- Synthetic message in himalaya v2's `message read --json` (mail-parser) shape.
+local function addr_list(...)
+	return { Address = { List = { ... } } }
+end
+local fixture = {
+	text_body = { 1 },
+	html_body = {},
+	attachments = {},
+	parts = {
+		{
+			headers = {
+				{ name = "from", value = addr_list({ name = "Ann Sender", address = "ann@example.com" }) },
+				{ name = "to", value = addr_list({ name = "Me (me@example.com)", address = "me@example.com" }, { name = vim.NIL, address = "bob@example.com" }) },
+				{ name = "cc", value = addr_list({ name = "Carl", address = "carl@example.com" }, { name = "", address = "ANN@example.com" }) },
+				{ name = "subject", value = { Text = "RE: plan" } },
+				{ name = "message_id", value = { Text = "m2@example.com" } },
+				{ name = "references", value = { Text = "m1@example.com" } },
+				{ name = "date", value = { DateTime = { year = 2026, month = 10, day = 2, hour = 21, minute = 6, second = 0, tz_before_gmt = false, tz_hour = 0, tz_minute = 0 } } },
+			},
+		},
+		{ headers = {}, body = { Text = "line one\r\n\r\nline two" } },
+	},
+}
+
+check("mail-compose: reply-all fields, threading, quoting", function()
+	local mc = require("config.mail-compose")
+	local f = mc.reply_fields(fixture, "Me <me@example.com>", true)
+	assert(f.to == "Ann Sender <ann@example.com>", "to: " .. f.to)
+	assert(f.cc == "bob@example.com, Carl <carl@example.com>", "cc must drop self and the replied-to sender: " .. f.cc)
+	assert(f.subject == "RE: plan", "existing Re: prefix doubled: " .. f.subject)
+	assert(f.in_reply_to == "<m2@example.com>")
+	assert(f.references == "<m1@example.com> <m2@example.com>", "references: " .. f.references)
+	assert(f.body:find("> line one\n>\n> line two", 1, true), "quote: " .. f.body)
+	assert(mc.reply_fields(fixture, "me@example.com", false).cc == "", "plain reply must not Cc")
+end)
+
+check("mail-compose: body drops zero-width preheader padding", function()
+	local f = vim.deepcopy(fixture)
+	f.parts[2].body = { Text = "Sale.\226\128\140 \226\128\140 \226\128\140\194\173 Hi\239\187\191 there" }
+	local body = require("config.mail-compose").summary(f).body
+	assert(body == "Sale. Hi there", "zero-width chars must not reach the reader: " .. vim.inspect(body))
+end)
+
+check("mail-compose: buffer parse and header injection", function()
+	local mc = require("config.mail-compose")
+	local m = mc.parse({ "From: me@example.com", "To: a@example.com", "Subject: hi: there", "Attach: /tmp/x.pdf", "Attach: ", "", "body", "", "To: not a header" })
+	assert(m.headers.To == "a@example.com" and m.headers.Subject == "hi: there")
+	assert(#m.attach == 1 and m.attach[1] == "/tmp/x.pdf", "attach parse")
+	assert(m.body == "body\n\nTo: not a header", "body: " .. m.body)
+	local tight = mc.parse({ "To: a@example.com", "Cc: <c@example.com>", "Attach: ", "Note: first line", "second" })
+	assert(tight.body == "Note: first line\nsecond", "no blank separator must not lose body: " .. tight.body)
+	assert(mc.split_addrs(tight.headers.Cc)[1].address == "c@example.com", "angle-only address")
+	local mime = "From: a\r\nTo: <x@y>,\r\n\t<z@y>\r\nSubject: s\r\n\r\nbody\r\n"
+	local out = mc.set_headers(mime, { To = "Ann <x@y>", ["In-Reply-To"] = "<x@y>" })
+	assert(out == "From: a\r\nTo: Ann <x@y>\r\nSubject: s\r\nIn-Reply-To: <x@y>\r\n\r\nbody\r\n", "set_headers: " .. out)
+	assert(mc.set_headers(mime, {}) == mime)
+	local a = mc.split_addrs('"Doe, J (z@x.io)" <z@x.io>, Kim <m@x.io>,  bare@x.io')
+	assert(#a == 3, "split on quoted comma: " .. vim.inspect(a))
+	assert(a[1].name == "Doe, J (z@x.io)" and a[1].address == "z@x.io")
+	assert(a[3].name == "" and a[3].address == "bare@x.io")
+end)
+
+check("mail-compose: attaching fills the empty Attach line, else adds one", function()
+	local mc = require("config.mail-compose")
+	local base = { "To: a@example.com", "Subject: s", "Attach: ", "", "Attach: body text" }
+	local one = mc.add_attachment(base, "/tmp/a.pdf")
+	assert(one[3] == "Attach: /tmp/a.pdf" and #one == 5, vim.inspect(one))
+	local two = mc.add_attachment(one, "/tmp/b.pdf")
+	assert(two[4] == "Attach: /tmp/b.pdf" and two[5] == "" and two[6] == "Attach: body text", vim.inspect(two))
+	assert(#mc.parse(two).attach == 2, "both attachments must parse")
+end)
+
+check("mail-compose: send pipeline composes, threads, sends, flags", function()
+	local mc = require("config.mail-compose")
+	local real, calls = mc.himalaya, {}
+	local accounts_json = vim.json.encode({ accounts = { { name = "work", default = false, backends = { "imap", "smtp" } }, { name = "gmail", default = true, backends = { "imap", "smtp" } } } })
+	mc.himalaya = function(args, stdin, cb)
+		table.insert(calls, { args = args, stdin = stdin })
+		if args[1] == "account" then
+			return cb(true, accounts_json, "")
+		end
+		cb(true, vim.tbl_contains(args, "compose") and "From: me\r\nSubject: s\r\nDate: Wed, 7 Oct 2026 00:00:00 +0000\r\n\r\nhello\r\n" or "", "")
+	end
+	local function find(c, word)
+		for _, call in ipairs(c) do
+			if vim.tbl_contains(call.args, word) then
+				return call
+			end
+		end
+	end
+	local function run(account)
+		calls = {}
+		local buf = vim.api.nvim_create_buf(true, false)
+		vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "From: me@example.com", "To: José <a@example.com>, \"B, C\" <b@example.com>", "Subject: s", "", "hello" })
+		vim.b[buf].mail_compose = { kind = "reply", account = account, mailbox = "inbox", reply_id = "7", in_reply_to = "<m@x>", references = "<m@x>" }
+		local ok, err = pcall(mc.submit, buf, "send")
+		local kept = vim.api.nvim_buf_is_valid(buf)
+		if kept then -- a modified leftover buffer would block the suite's +qa
+			vim.api.nvim_buf_delete(buf, { force = true })
+		end
+		assert(ok, err)
+		assert(not kept, "buffer kept after successful send")
+		return calls
+	end
+	local ok, c = pcall(run, "work")
+	if not ok then
+		mc.himalaya = real
+		error(c)
+	end
+	local compose, send, flag = find(c, "compose"), find(c, "send"), find(c, "answered")
+	assert(compose and send and flag, "expected compose, send, flag: " .. vim.inspect(c))
+	assert(vim.tbl_contains(compose.args, "-b") and vim.tbl_contains(compose.args, "smtp"), "compose must use the offline smtp backend")
+	assert(vim.deep_equal({ send.args[1], send.args[2], send.args[3], send.args[4] }, { "-a", "work", "message", "send" }))
+	assert(send.args[6] == "sent", "work must save a Sent copy")
+	assert(send.stdin:find("In-Reply-To: <m@x>\r\n", 1, true), "threading header not injected")
+	assert(send.stdin:find('To: =?UTF-8?B?Sm9zw6k=?= <a@example.com>, "B, C" <b@example.com>', 1, true), "display names not restored: " .. send.stdin)
+	local to_flags = 0
+	for i, v in ipairs(compose.args) do
+		if v == "--to" then
+			to_flags = to_flags + 1
+			assert(not compose.args[i + 1]:find("[<,]"), "composer must get bare addresses")
+		end
+	end
+	assert(to_flags == 2, "one --to per address")
+	assert(flag.args[#flag.args] == "7", "replied message not flagged")
+	ok, c = pcall(run, "gmail")
+	mc.himalaya = real
+	assert(ok, c)
+	assert(not vim.tbl_contains(find(c, "send").args, "--save"), "gmail files Sent itself; --save would duplicate")
+end)
+
+check("mail-compose: :w and ZZ open the menu after the command; ZZ can discard", function()
+	package.loaded["config.mail-compose"] = nil
+	local mc = require("config.mail-compose")
+	mc.himalaya = function(args, _, cb)
+		cb(true, vim.tbl_contains(args, "compose") and "From: <me@example.com>\r\n\r\n" or "", "")
+	end
+	local orig_select, seen = vim.ui.select, {}
+	vim.ui.select = function(items, _, on_choice)
+		table.insert(seen, items)
+		on_choice(items[#seen == 2 and 3 or #items]) -- :w → Cancel, ZZ → Discard
+	end
+	local ok, err = pcall(function()
+		mc.compose({ account = "testacct" })
+		local buf = vim.api.nvim_get_current_buf()
+		assert(vim.api.nvim_buf_get_name(buf):find("himalaya://compose"), "compose buffer not opened")
+		vim.cmd("write")
+		assert(#seen == 0, "menu must not open inside BufWriteCmd (steals focus)")
+		vim.wait(500, function() return #seen == 1 end)
+		assert(vim.deep_equal(seen[1], { "Send", "Save draft", "Cancel" }), vim.inspect(seen[1]))
+		assert(vim.api.nvim_buf_is_valid(buf), "Cancel must keep the buffer")
+		vim.api.nvim_feedkeys("ZZ", "x", false)
+		vim.wait(500, function() return #seen == 2 end)
+		assert(vim.deep_equal(seen[2], { "Send", "Save draft", "Discard", "Cancel" }), vim.inspect(seen[2]))
+		assert(not vim.api.nvim_buf_is_valid(buf), "ZZ → Discard must close the message")
+	end)
+	vim.ui.select = orig_select
+	package.loaded["config.mail-compose"] = nil
+	assert(ok, err)
+end)
+
+check("mail-browse: envelopes with JSON-null fields render (drafts have no Date)", function()
+	local mb = require("config.mail-browse")
+	local line = mb.render_line({ id = "4", flags = vim.NIL, subject = vim.NIL, from = vim.NIL, date = vim.NIL, ["has-attachment"] = vim.NIL })
+	assert(type(line) == "string" and line:find("?", 1, true), "all-null envelope: " .. tostring(line))
+	local line2 = mb.render_line({ id = "5", flags = { vim.NIL }, subject = "s", from = { { name = vim.NIL, email = vim.NIL } }, date = "garbage" })
+	assert(line2:find("s$"), "partial-null envelope: " .. line2)
+end)
+
+check("mail-browse: move uses --from; delete/move name the message", function()
+	local mb = require("config.mail-browse")
+	local mc = require("config.mail-compose")
+	local real, calls, notes = mc.himalaya, {}, {}
+	local orig_notify, orig_select = vim.notify, vim.ui.select
+	vim.notify = function(m) table.insert(notes, m) end
+	vim.ui.select = function(items, _, cb) cb(items[2]) end
+	mc.himalaya = function(args, _, cb)
+		table.insert(calls, args)
+		if args[1] == "account" then
+			return cb(true, vim.json.encode({ accounts = { { name = "t", default = true, backends = {} } } }), "")
+		elseif vim.tbl_contains(args, "mailbox") then
+			return cb(true, vim.json.encode({ mailboxes = { { name = "Inbox" }, { name = "Archive" } } }), "")
+		elseif vim.tbl_contains(args, "envelope") then
+			return cb(true, vim.json.encode({ envelopes = { { id = "5", flags = {}, subject = "Quarterly plan", from = { { email = "a@example.com" } }, date = "2026-01-01T00:00:00Z" } } }), "")
+		end
+		cb(true, "From: <me@example.com>\r\n\r\n", "")
+	end
+	local ok, err = pcall(function()
+		vim.cmd("tabnew")
+		mb.open({ account = "t", mailbox = "Inbox" })
+		vim.api.nvim_win_set_cursor(0, { 1, 0 })
+		vim.api.nvim_feedkeys("gm", "x", false)
+		local mv
+		for _, a in ipairs(calls) do
+			if vim.tbl_contains(a, "move") then mv = a end
+		end
+		assert(mv, "no move call")
+		assert(vim.tbl_contains(mv, "--from") and not vim.tbl_contains(mv, "-m"), "move must name source with --from: " .. vim.inspect(mv))
+		assert(mv[vim.fn.index(mv, "--to") + 2] == "Archive" and mv[#mv] == "5", vim.inspect(mv))
+		assert(vim.tbl_contains(notes, "Moved to Archive: Quarterly plan"), vim.inspect(notes))
+		vim.api.nvim_win_set_cursor(0, { 1, 0 })
+		vim.api.nvim_feedkeys("d", "x", false)
+		assert(vim.tbl_contains(notes, "Deleted: Quarterly plan"), vim.inspect(notes))
+		vim.cmd("tabclose")
+	end)
+	mc.himalaya, vim.notify, vim.ui.select = real, orig_notify, orig_select
+	assert(ok, err)
+end)
+
+check("mail-browse: out-of-order loads never resurrect a stale list", function()
+	local mb = require("config.mail-browse")
+	local mc = require("config.mail-compose")
+	local real, pending = mc.himalaya, {}
+	mc.himalaya = function(args, _, cb)
+		if args[1] == "account" then
+			return cb(true, vim.json.encode({ accounts = { { name = "t", default = true, backends = {} } } }), "")
+		end
+		if vim.tbl_contains(args, "envelope") then
+			local box = args[vim.fn.index(args, "-m") + 2]
+			return table.insert(pending, function()
+				cb(true, vim.json.encode({ envelopes = { { id = box, flags = {}, subject = "from " .. box, from = { { email = "x@example.com" } }, date = "2026-01-01T00:00:00Z" } } }), "")
+			end)
+		end
+		cb(true, "From: <me@example.com>\r\n\r\n", "")
+	end
+	local ok, err = pcall(function()
+		vim.cmd("tabnew")
+		mb.open({ account = "t", mailbox = "A" })
+		local buf = vim.api.nvim_get_current_buf()
+		assert(#vim.b[buf].mail_list.envelopes == 0, "rows must be empty while loading")
+		vim.b[buf].mail_list = vim.tbl_extend("force", vim.b[buf].mail_list, { mailbox = "B" })
+		vim.api.nvim_feedkeys("R", "x", false) -- reload as B while A is in flight
+		pending[2]() -- B answers first
+		pending[1]() -- then the stale A response
+		local s = vim.b[buf].mail_list
+		assert(s.mailbox == "B" and s.envelopes[1].id == "B", "stale response won: " .. vim.inspect(s))
+		vim.cmd("tabclose")
+	end)
+	mc.himalaya = real
+	assert(ok, err)
+end)
+
+check("mail-compose: mixed line endings never eat headers or body (draft-corruption regression)", function()
+	local mc = require("config.mail-compose")
+	-- LF headers, a stray CRLF inside the body: the old code split headers on CRLF
+	-- and collapsed the whole block into one "From:" line
+	local mixed = "From: <me@x.io>\nTo: <a@x.io>\nSubject: keep me\nDate: Wed, 7 Oct 2026 00:00:00 +0000\nMIME-Version: 1.0\n\nline one\r\nline two\n"
+	local out = mc.set_headers(mixed, { From = "Me <me@x.io>", To = "Ann <a@x.io>" })
+	assert(out:find("Subject: keep me", 1, true) and out:find("Date: Wed", 1, true), "headers eaten: " .. out)
+	assert(out:find("line one\r\nline two", 1, true), "body eaten: " .. out)
+	assert(out:find("^From: Me <me@x%.io>\r\nTo: Ann <a@x%.io>\r\nSubject"), "rewrite/ordering: " .. out)
+	assert(mc.well_formed(out, mixed, "keep me"), "well-formed message rejected")
+	-- the exact corrupted shape seen live must be rejected
+	local bad = "From: me@x.io\r\nTo: me@x.io"
+	assert(not mc.well_formed(bad, mixed, "keep me"), "corrupted build accepted")
+	assert(not mc.well_formed("From: a\r\nDate: x\r\n\r\nb", nil, "subject given"), "lost Subject accepted")
+	assert(not mc.well_formed("From: a\r\nDate: x\r\n\r\nb", string.rep("x", 20000), nil), "big shrink accepted")
+end)
+
+check("mail-compose: a malformed build is refused, buffer and text kept", function()
+	package.loaded["config.mail-compose"] = nil
+	local mc = require("config.mail-compose")
+	local calls, errors = {}, {}
+	local orig_notify = vim.notify
+	vim.notify = function(m, lvl)
+		if lvl == vim.log.levels.ERROR then
+			table.insert(errors, m)
+		end
+	end
+	mc.himalaya = function(args, _, cb)
+		table.insert(calls, args)
+		cb(true, args[1] == "account" and vim.json.encode({ accounts = {} }) or "", "") -- compose "succeeds" with empty output
+	end
+	local buf = vim.api.nvim_create_buf(true, false)
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "To: a@example.com", "", "precious text" })
+	vim.b[buf].mail_compose = { kind = "compose", account = "w" }
+	local ok, err = pcall(mc.submit, buf, "draft")
+	vim.notify = orig_notify
+	local kept = vim.api.nvim_buf_is_valid(buf)
+	local text = kept and vim.api.nvim_buf_get_lines(buf, -2, -1, false)[1]
+	if kept then
+		vim.api.nvim_buf_delete(buf, { force = true })
+	end
+	package.loaded["config.mail-compose"] = nil
+	assert(ok, err)
+	for _, a in ipairs(calls) do
+		assert(not vim.tbl_contains(a, "add") and not vim.tbl_contains(a, "send"), "malformed build was saved/sent")
+	end
+	assert(kept and text == "precious text", "buffer/text lost on failed build")
+	assert(errors[1] and errors[1]:find("no usable message"), "failure not surfaced: " .. vim.inspect(errors))
+end)
+
+check("mail-compose: refuses Bcc send on himalaya < 2.2.1 (leaks Bcc, #747)", function()
+	package.loaded["config.mail-compose"] = nil -- fresh version cache
+	local mc = require("config.mail-compose")
+	local calls, errors = {}, {}
+	local orig_notify = vim.notify
+	vim.notify = function(m, lvl)
+		if lvl == vim.log.levels.ERROR then
+			table.insert(errors, m)
+		end
+	end
+	mc.himalaya = function(args, _, cb)
+		table.insert(calls, args)
+		cb(true, args[1] == "--version" and "himalaya v2.1.0 +imap" or "", "")
+	end
+	local buf = vim.api.nvim_create_buf(true, false)
+	vim.api.nvim_buf_set_lines(buf, 0, -1, false, { "To: a@example.com", "Bcc: hidden@example.com", "", "x" })
+	vim.b[buf].mail_compose = { kind = "compose", account = "work" }
+	local ok, err = pcall(mc.submit, buf, "send")
+	vim.notify = orig_notify
+	vim.api.nvim_buf_delete(buf, { force = true })
+	package.loaded["config.mail-compose"] = nil
+	assert(ok, err)
+	for _, a in ipairs(calls) do
+		assert(not vim.tbl_contains(a, "compose") and not vim.tbl_contains(a, "send"), "must stop before composing/sending; calls: " .. vim.inspect(calls))
+	end
+	assert(vim.tbl_contains(vim.tbl_map(function(a) return a[1] end, calls), "--version"), "version never checked")
+	assert(errors[1] and errors[1]:find("Bcc"), "no Bcc refusal surfaced")
+end)
+
+check("mail-browse: list renders, <CR> reads in a normal split and marks seen", function()
+	local mb = require("config.mail-browse")
+	local mc = require("config.mail-compose")
+	local real, calls = mc.himalaya, {}
+	local envelopes = {
+		{ id = "9", flags = {}, subject = "Plan", from = { { name = "Ann", email = "ann@example.com" } }, date = "2026-10-04T22:17:06Z", ["has-attachment"] = true },
+		{ id = "8", flags = { { iana = "seen" } }, subject = "Old", from = { { name = vim.NIL, email = "bob@example.com" } }, date = "2026-10-03T08:00:00Z", ["has-attachment"] = vim.NIL },
+	}
+	mc.himalaya = function(args, _, cb)
+		table.insert(calls, args)
+		if vim.tbl_contains(args, "envelope") then
+			cb(true, vim.json.encode({ envelopes = envelopes }), "")
+		elseif args[1] == "account" then
+			cb(true, vim.json.encode({ accounts = { { name = "testacct", default = true, backends = { "smtp" } } } }), "")
+		elseif vim.tbl_contains(args, "read") then
+			cb(true, vim.json.encode({
+				text_body = { 1 }, html_body = {}, attachments = { 2 },
+				parts = {
+					{ headers = {
+						{ name = "from", value = { Address = { List = { { name = "Ann", address = "ann@example.com" } } } } },
+						{ name = "subject", value = { Text = "Plan" } },
+					} },
+					{ headers = {}, body = { Text = "hello" } },
+					{ headers = { { name = "content_disposition", value = { ContentType = { c_type = "attachment", attributes = { { name = "filename", value = "spec.pdf" } } } } } }, body = { Binary = { 37, 80, 68, 70 } } },
+				},
+			}), "")
+		else
+			cb(true, "From: <me@example.com>\r\n\r\n", "")
+		end
+	end
+	local ok, err = pcall(function()
+		vim.cmd("tabnew")
+		mb.open({ account = "testacct" })
+		local list = vim.api.nvim_get_current_buf()
+		local lines = vim.api.nvim_buf_get_lines(list, 0, -1, false)
+		assert(#lines == 2, "list lines: " .. vim.inspect(lines))
+		assert(lines[1]:find("^●") and lines[1]:find("@") and lines[1]:find("Ann") and lines[1]:find("Plan"), "unread row: " .. lines[1])
+		assert(lines[2]:find("bob@example.com", 1, true), "null name must fall back to address: " .. lines[2])
+		assert(lines[2]:sub(1, 3) == "   ", "JSON null has-attachment must not show @: " .. lines[2])
+		assert(vim.fn.win_gettype() == "", "list must be a normal window, not a float")
+		vim.api.nvim_win_set_cursor(0, { 1, 0 })
+		vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR>", true, false, true), "x", false)
+		local reader = vim.api.nvim_get_current_buf()
+		assert(reader ~= list and vim.b[reader].mail_msg.id == "9", "reader not focused")
+		assert(vim.fn.win_gettype() == "" and #vim.api.nvim_tabpage_list_wins(0) == 2, "reader must be a normal split")
+		local shown = vim.api.nvim_buf_get_lines(reader, 0, -1, false)
+		assert(shown[#shown] == "hello", "body not shown: " .. vim.inspect(shown))
+		assert(table.concat(shown, "\n"):find("Attachment: spec.pdf (4 B)", 1, true), "attachment not listed: " .. vim.inspect(shown))
+		local gF = vim.fn.maparg("gF", "n", false, true)
+		assert(gF.buffer == 1 and gF.desc == "Mail: Switch mailbox", "gF must work from the reader pane")
+		assert(vim.tbl_contains(calls[#calls], "--seen"), "read must mark seen")
+		assert(vim.api.nvim_buf_get_lines(list, 0, 1, false)[1]:find("^ "), "row still unread after reading")
+		vim.cmd("tabclose")
+	end)
+	mc.himalaya = real
+	assert(ok, err)
+end)
+
 -- ── result ──────────────────────────────────────────────────────────────
 if #failures == 0 then
 	print("SMOKE-PASS")

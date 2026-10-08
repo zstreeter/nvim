@@ -10,7 +10,7 @@
 --   <leader>f   snacks.lua (pickers), lang/zotero-pdf.lua (<leader>fz)
 --   <leader>g   snacks.lua (git pickers, lazygit)
 --   <leader>l   lsp.lua (rename), lsp/{conform,nvim-lint}.lua (format/lint)
---   <leader>m   himalaya.lua
+--   <leader>m   config/mail-browse.lua (setup() from init.lua; no plugin)
 --   <leader>o   lang/obsidian.lua
 --   <leader>q   bqf.lua (quickfix)
 --   <leader>Q   lang/quarto.lua (also registers its own bindings via wk.add)

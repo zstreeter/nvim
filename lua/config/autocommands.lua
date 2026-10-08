@@ -19,6 +19,19 @@ autocmd("VimResized", {
 	desc = "Auto-resize splits across all tabs",
 })
 
+-- Not in snacks.lua's init: lang/zotero-pdf.lua's snacks fragment defines its
+-- own init, and lazy keeps only one.
+autocmd("User", {
+	group = general,
+	pattern = "MailUnread", -- config/mail-notify: an unread count changed
+	callback = function()
+		if package.loaded["snacks.dashboard"] then
+			Snacks.dashboard.update()
+		end
+	end,
+	desc = "Redraw dashboard mail counts",
+})
+
 autocmd("BufReadPost", {
 	group = general,
 	callback = function()

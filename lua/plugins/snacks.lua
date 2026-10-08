@@ -1,3 +1,29 @@
+-- One dashboard row per polled mail account with its unread count; keys are
+-- each account's first free letter (digits belong to projects/recent files).
+local function mail_section()
+	local ok, notify = pcall(require, "config.mail-notify")
+	if not ok then
+		return {}
+	end
+	local items, used = {}, {}
+	for _, account in ipairs(notify.accounts()) do
+		local key
+		for ch in account:lower():gmatch("%a") do
+			if not used[ch] then
+				key, used[ch] = ch, true
+				break
+			end
+		end
+		local n = notify.unread(account)
+		local count = n == nil and "…" or n == 0 and "no unread" or (n .. " unread")
+		table.insert(items, { icon = "󰇮 ", key = key, desc = ("Mail · %-7s %s"):format(account, count), action = ":Mail " .. account })
+	end
+	if #items > 0 then
+		items[#items].padding = 1
+	end
+	return items
+end
+
 return {
 	"folke/snacks.nvim",
 	priority = 1000,
@@ -8,6 +34,7 @@ return {
 			enabled = true,
 			sections = {
 				{ section = "header" },
+				mail_section,
 				{ title = "Projects", section = "projects", indent = 2, padding = 1 },
 				{ title = "Recent Files", section = "recent_files", indent = 2, padding = 1 },
 			},

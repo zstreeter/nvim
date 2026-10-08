@@ -6,16 +6,21 @@
 -- notifications that never ran in the background).
 --
 -- opts.runner is injectable for tests: fun(account, on_done(json_string)).
--- The default runner shells out to himalaya; JSON parsing and per-account
--- unread state are private implementation.
+-- Read side: unread(account), accounts(); a `User MailUnread` event fires
+-- when a count changes (the dashboard redraws on it).
 local M = {}
 
-local timer, runner, last_counts
+local timer, runner, last_counts, configured
 
--- himalaya v2 schema: { envelopes = [ { flags = [ {iana="seen"}, ... ] } ] }
+-- Two accepted shapes:
+--   IMAP STATUS:   { unseen = 25, messages = 238, ... }  (exact, one round trip)
+--   envelope list: { envelopes = [ { flags = [ {iana="seen"}, ... ] } ] }
 -- (v1 was a bare array with string flags like "Seen".)
 local function count_unread(json)
 	local ok, result = pcall(vim.json.decode, json)
+	if ok and type(result) == "table" and type(result.unseen) == "number" then
+		return result.unseen
+	end
 	if not ok or type(result) ~= "table" or type(result.envelopes) ~= "table" then
 		vim.notify("mail-notify: unexpected himalaya JSON schema — polling gave no data", vim.log.levels.WARN)
 		return nil
@@ -36,15 +41,24 @@ local function count_unread(json)
 	return unread
 end
 
+-- IMAP STATUS gives the exact unread count cheaply even for huge mailboxes
+-- (a 3,800-unread Gmail inbox: ~1 s, vs ~15 s listing envelopes). Accounts
+-- without IMAP fall back to a capped unread search.
 local function default_runner(account, on_done)
-	vim.fn.jobstart({ "himalaya", "--account", account, "envelope", "list", "--json" }, {
-		stdout_buffered = true,
-		on_stdout = function(_, data)
-			if data and data[1] and data[1] ~= "" then
-				on_done(table.concat(data, ""))
-			end
-		end,
-	})
+	local function run(cmd, on_fail)
+		vim.system(cmd, { text = false }, function(r)
+			vim.schedule(function()
+				if r.code == 0 and r.stdout and r.stdout ~= "" then
+					on_done(r.stdout)
+				elseif on_fail then
+					on_fail()
+				end
+			end)
+		end)
+	end
+	run({ "himalaya", "--account", account, "imap", "status", "--json", "INBOX" }, function()
+		run({ "himalaya", "--account", account, "envelope", "search", "-s", "200", "--json", "not", "flag", "seen" })
+	end)
 end
 
 local function check_account(account)
@@ -62,8 +76,22 @@ local function check_account(account)
 				{ title = "📬 Mail" }
 			)
 		end
+		local changed = last_counts[account] ~= unread
 		last_counts[account] = unread
+		if changed then
+			vim.api.nvim_exec_autocmds("User", { pattern = "MailUnread", modeline = false })
+		end
 	end)
+end
+
+--- Last known unread count for an account (nil until the first poll lands).
+function M.unread(account)
+	return last_counts and last_counts[account]
+end
+
+--- Accounts being polled, in configured order.
+function M.accounts()
+	return configured or {}
 end
 
 --- Start polling. opts: accounts (list, required), interval_ms (default 5 min),
@@ -74,6 +102,7 @@ function M.start(opts)
 	runner = opts.runner or default_runner
 	last_counts = {}
 	local accounts = opts.accounts or {}
+	configured = accounts
 
 	-- Only the real runner needs the binary; injected runners don't.
 	if not opts.runner and vim.fn.executable("himalaya") == 0 then

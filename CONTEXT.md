@@ -26,9 +26,22 @@ refactors should use these names.
 - **Mail notify module** (`lua/config/mail-notify.lua`) — background new-mail
   polling with an explicit lifecycle: `start(opts)` / `stop()`, started
   eagerly from init.lua, stopped on VimLeavePre. The job runner is
-  injectable; JSON parsing and per-account unread state are private.
-  Distinct from the himalaya plugin spec, which owns only `<leader>m`
-  keymaps and lazy-loads on first use.
+  injectable. Counts come from IMAP STATUS (exact, ~1 s even for huge
+  inboxes); read side is `unread(account)` / `accounts()`, and a
+  `User MailUnread` event fires on change (the dashboard's per-account rows
+  redraw on it, hook in config/autocommands.lua).
+  Distinct from the mail browse module, which owns `:Mail` and `<leader>m`.
+- **Mail compose module** (`lua/config/mail-compose.lua`) — compose, reply,
+  reply-all, forward and draft resume as a plain `mail` buffer (header block +
+  body); `:w` asks Send / Save draft / Cancel. himalaya's flag composer builds
+  the MIME; the module only restores display names and adds threading headers,
+  then pipes to `message send` / `message add`. `M.himalaya` is the single CLI
+  seam (replaced in tests).
+- **Mail browse module** (`lua/config/mail-browse.lua`) — `:Mail [account]`
+  lists a mailbox in the current window (normal windows, no floats, so window
+  navigation works); `<CR>` reads into a reused split below. Paging, search,
+  mailbox/account switching, move/delete/attachments; compose keys hand off to
+  the compose module. No plugin: `setup()` runs from init.lua.
 - **Smoke suite** (`tests/smoke.lua` via `tests/smoke.sh`) — headless boot +
   assertion suite; every structural refactor adds checks here and must pass
   before commit.
