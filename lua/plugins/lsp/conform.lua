@@ -25,7 +25,7 @@ return {
 				python = { "isort", "black" },
 
 				-- Go
-				go = { "gofmt", "goimports" },
+				go = { "goimports" }, -- goimports also gofmts
 
 				-- Rust
 				rust = { "rustfmt" },

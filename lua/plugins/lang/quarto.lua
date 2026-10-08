@@ -1,10 +1,11 @@
 local M = {
 	"quarto-dev/quarto-nvim",
+	ft = "quarto", -- also gates molten, image.nvim and otter, which loaded at every startup
 	dependencies = {
 		"jmbuhr/otter.nvim",
 		"nvim-treesitter/nvim-treesitter",
 		{ "benlubas/molten-nvim", build = ":UpdateRemotePlugins" },
-		{ "3rd/image.nvim", opts = {} },
+		{ "3rd/image.nvim", lazy = true, opts = {} },
 	},
 }
 

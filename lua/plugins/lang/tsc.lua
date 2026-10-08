@@ -1,1 +1,1 @@
-return { "dmmulroy/tsc.nvim", opts = {} }
+return { "dmmulroy/tsc.nvim", cmd = "TSC", opts = {} }
