@@ -58,7 +58,7 @@ end)
 -- ── keymap registry ─────────────────────────────────────────────────────
 check("keys: registry loads, has groups, rejects duplicates", function()
 	local keys = require("config.keys")
-	assert(#keys.groups >= 14, "expected >=14 group entries, got " .. #keys.groups)
+	assert(#keys.groups >= 12, "expected >=12 group entries, got " .. #keys.groups)
 	local prefixes = {}
 	for _, g in ipairs(keys.groups) do
 		assert(not prefixes[g[1]], "duplicate prefix " .. g[1])
@@ -66,6 +66,24 @@ check("keys: registry loads, has groups, rejects duplicates", function()
 	end
 	assert(prefixes["<leader>q"] and prefixes["<leader>Q"], "quickfix/quarto groups missing")
 	assert(not prefixes["<leader>r"], "phantom rename/restart group is back")
+end)
+
+check("keys: every <leader>xy mapping belongs to a registered group", function()
+	local groups = {}
+	for _, g in ipairs(require("config.keys").groups) do
+		groups[g[1]:gsub("^<leader>", "")] = true
+	end
+	local leader = vim.g.mapleader
+	local strays = {}
+	for _, mode in ipairs({ "n", "x" }) do
+		for _, m in ipairs(vim.api.nvim_get_keymap(mode)) do
+			local rest = m.lhs:sub(1, #leader) == leader and m.lhs:sub(#leader + 1) or nil
+			if rest and #rest >= 2 and not groups[rest:sub(1, 1)] then
+				strays[#strays + 1] = mode .. " <leader>" .. rest
+			end
+		end
+	end
+	assert(#strays == 0, "no registered group for: " .. table.concat(strays, ", "))
 end)
 
 check("keys: which-key consumes the registry", function()
