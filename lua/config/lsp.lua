@@ -32,7 +32,7 @@ vim.diagnostic.config({
 vim.lsp.inlay_hint.enable(false)
 
 -- Default capabilities for every server, extended by blink.cmp when present.
--- This is the ONLY place capabilities are computed; lsp/*.lua stay pure data.
+-- This is the ONLY place capabilities are computed; after/lsp/*.lua stay pure data.
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 local blink_ok, blink = pcall(require, "blink.cmp")
 if blink_ok then

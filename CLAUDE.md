@@ -26,7 +26,7 @@ lua/config/
   ├── mail-notify.lua     # Background mail poller: start()/stop(), injectable runner
   ├── servers.lua         # LSP server + mason tool lists (the LSP data interface)
   └── lsp.lua             # LSP module: capabilities, diagnostics, LspAttach keymaps
-lsp/                      # Per-server overrides — PURE settings tables, no require()
+after/lsp/                # Per-server overrides — PURE settings tables, no require(); after/ so they beat nvim-lspconfig
 lua/plugins/              # lazy.nvim specs (subdirs: ai/, lang/, lsp/, ui/)
   └── theme.lua           # Quattro symlink into active Omarchy state — do not edit
 tests/smoke.{sh,lua}      # Headless boot + assertion suite
@@ -35,7 +35,7 @@ tests/smoke.{sh,lua}      # Headless boot + assertion suite
 ## Rules that keep the architecture honest
 
 - **Glyphs** live only in `lua/config/icons.lua` (smoke test enforces).
-- **`lsp/*.lua` stay pure data** — no `require()` of plugins (smoke enforces).
+- **`after/lsp/*.lua` stay pure data** — no `require()` of plugins (smoke enforces).
 - **which-key group labels** live only in `lua/config/keys.lua`; plugin files
   own their handlers/`keys={}` specs.
 - **Goto pickers** (`gd/gD/gr/gI/gy`) are global maps owned by
