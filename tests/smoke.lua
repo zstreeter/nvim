@@ -805,6 +805,21 @@ check("lualine: LSP diagnostics are counted once", function()
 	assert(not vim.tbl_contains(src, "nvim_lsp"), "nvim_lsp duplicates nvim_diagnostic")
 end)
 
+check("save: prose is left alone, code is trimmed", function()
+	local dir = vim.fn.tempname()
+	vim.fn.mkdir(dir, "p")
+	local function saved(name, line)
+		vim.cmd("edit " .. dir .. "/" .. name)
+		vim.api.nvim_buf_set_lines(0, 0, -1, false, { line })
+		vim.cmd("write")
+		return vim.fn.readfile(dir .. "/" .. name)[1]
+	end
+	assert(saved("a.md", "hard break  ") == "hard break  ", "markdown trailing spaces stripped on save")
+	assert(saved("b.sh", "echo hi   ") == "echo hi", "code not trimmed on save")
+	vim.cmd("%bwipeout!")
+	vim.fn.delete(dir, "rf")
+end)
+
 -- ── LSP overrides / obsidian gating ─────────────────────────────────────
 check("lsp: after/lsp overrides win over nvim-lspconfig's bundled configs", function()
 	local tw = vim.lsp.config.tailwindcss
