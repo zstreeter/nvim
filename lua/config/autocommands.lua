@@ -15,7 +15,11 @@ autocmd("BufWritePre", {
 
 autocmd("VimResized", {
 	group = general,
-	command = "tabdo wincmd =",
+	callback = function()
+		local tab = vim.fn.tabpagenr()
+		vim.cmd("tabdo wincmd =")
+		vim.cmd("tabnext " .. tab) -- tabdo leaves you on the last tab
+	end,
 	desc = "Auto-resize splits across all tabs",
 })
 
@@ -49,7 +53,7 @@ autocmd("BufWritePre", {
 		if event.match:match("^%w%w+://") then
 			return
 		end
-		local file = vim.loop.fs_realpath(event.match) or event.match
+		local file = vim.uv.fs_realpath(event.match) or event.match
 		vim.fn.mkdir(vim.fn.fnamemodify(file, ":p:h"), "p")
 	end,
 	desc = "Auto-create directories on save",
@@ -58,7 +62,7 @@ autocmd("BufWritePre", {
 autocmd("BufWinEnter", {
 	group = general,
 	callback = function()
-		vim.cmd("set formatoptions-=cro")
+		vim.opt_local.formatoptions:remove({ "c", "r", "o" })
 	end,
 	desc = "Disable auto-comment continuation",
 })
@@ -96,7 +100,7 @@ autocmd({ "VimEnter", "DirChanged" }, {
 autocmd("TextYankPost", {
 	group = general,
 	callback = function()
-		vim.highlight.on_yank({ higroup = "Visual", timeout = 40 })
+		vim.hl.on_yank({ higroup = "Visual", timeout = 40 })
 	end,
 	desc = "Highlight on yank",
 })

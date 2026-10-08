@@ -772,6 +772,22 @@ check("mail-browse: list renders, <CR> reads in a normal split and marks seen", 
 	assert(ok, err)
 end)
 
+-- ── editor behaviour ────────────────────────────────────────────────────
+check("autocmd: VimResized equalizes splits without leaving the current tab", function()
+	vim.cmd("tabnew")
+	vim.cmd("tabnew")
+	vim.cmd("tabprevious")
+	local before = vim.fn.tabpagenr()
+	vim.api.nvim_exec_autocmds("VimResized", {})
+	assert(vim.fn.tabpagenr() == before, "VimResized moved to tab " .. vim.fn.tabpagenr())
+	vim.cmd("tabonly")
+end)
+
+check("lualine: LSP diagnostics are counted once", function()
+	local src = require("lualine").get_config().sections.lualine_b[3].sources
+	assert(not vim.tbl_contains(src, "nvim_lsp"), "nvim_lsp duplicates nvim_diagnostic")
+end)
+
 -- ── LSP overrides / obsidian gating ─────────────────────────────────────
 check("lsp: after/lsp overrides win over nvim-lspconfig's bundled configs", function()
 	local tw = vim.lsp.config.tailwindcss

@@ -31,7 +31,7 @@ keymap("n", "g#", "g#zz", opts)
 keymap("v", "<", "<gv", opts)
 keymap("v", ">", ">gv", opts)
 
-keymap("x", "p", [["_dP]])
+keymap("x", "p", "P") -- replace selection without clobbering the register
 keymap("n", "x", '"_x')
 
 -- Comment toggle using built-in gc (Neovim 0.12)
@@ -50,8 +50,9 @@ vim.keymap.set("n", "<Tab>", "<cmd>:popup mousemenu<CR>")
 -- keymap({ "n", "o", "x" }, "<s-l>", "g_", opts)
 
 -- tailwind bearable to work with
-keymap({ "n", "x" }, "j", "gj", opts)
-keymap({ "n", "x" }, "k", "gk", opts)
+-- Display lines only without a count, so `5j` still matches relativenumber.
+keymap({ "n", "x" }, "j", "v:count == 0 ? 'gj' : 'j'", { expr = true, silent = true })
+keymap({ "n", "x" }, "k", "v:count == 0 ? 'gk' : 'k'", { expr = true, silent = true })
 -- keymap("n", "<leader>w", ":lua vim.wo.wrap = not vim.wo.wrap<CR>", opts)
 
 -- Tab navigation
