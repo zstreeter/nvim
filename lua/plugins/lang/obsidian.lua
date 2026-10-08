@@ -1,20 +1,34 @@
+-- A file belongs to a vault iff an ancestor holds `.obsidian/` -- that is what makes a
+-- vault, so no path is hardcoded and no vault list is needed. The plugin loads only for
+-- such files (other markdown never pays its ~0.5 s setup), and its single dynamic
+-- workspace is always the current buffer's vault.
+local function vault_root(buf)
+	return vim.fs.root(buf or 0, ".obsidian")
+end
+
 return {
 	"epwalsh/obsidian.nvim",
 	version = "*",
 	lazy = true,
-	ft = { "markdown", "quarto" },
-	event = {
-		"BufReadPre " .. vim.fn.expand("~") .. "/research/**.md",
-		"BufNewFile " .. vim.fn.expand("~") .. "/research/**.md",
-		"BufReadPre " .. vim.fn.expand("~") .. "/research/**.qmd",
-		"BufNewFile " .. vim.fn.expand("~") .. "/research/**.qmd",
-	},
 	dependencies = { "nvim-lua/plenary.nvim" },
+	init = function()
+		vim.api.nvim_create_autocmd({ "BufReadPre", "BufNewFile" }, {
+			pattern = { "*.md", "*.qmd" },
+			callback = function(ev)
+				if vault_root(ev.buf) then
+					require("lazy").load({ plugins = { "obsidian.nvim" } })
+					return true -- loaded; drop the autocmd
+				end
+			end,
+		})
+	end,
 	opts = {
 		workspaces = {
 			{
-				name = "research",
-				path = "~/research",
+				name = "vault",
+				path = function()
+					return vault_root() or vim.fs.dirname(vim.api.nvim_buf_get_name(0))
+				end,
 			},
 		},
 		notes_subdir = "notes",
@@ -33,6 +47,5 @@ return {
 		{ "<leader>ot", "<cmd>ObsidianTags<cr>", desc = "Obsidian: Tags" },
 		{ "<leader>og", "<cmd>ObsidianSearch<cr>", desc = "Obsidian: Grep" },
 		{ "<leader>of", "<cmd>ObsidianFollowLink<cr>", desc = "Obsidian: Follow link" },
-		{ "<leader>ow", "<cmd>ObsidianWorkspace<cr>", desc = "Obsidian: Switch workspace" },
 	},
 }

@@ -772,6 +772,32 @@ check("mail-browse: list renders, <CR> reads in a normal split and marks seen", 
 	assert(ok, err)
 end)
 
+-- ── LSP overrides / obsidian gating ─────────────────────────────────────
+check("lsp: after/lsp overrides win over nvim-lspconfig's bundled configs", function()
+	local tw = vim.lsp.config.tailwindcss
+	assert(not vim.tbl_contains(tw.filetypes, "markdown"), "tailwindcss override lost: attaches to markdown")
+	local mk = vim.lsp.config.marksman.root_markers
+	assert(type(mk[1]) == "table" and vim.tbl_contains(mk[1], ".obsidian"), "marksman override lost")
+end)
+
+check("obsidian: loads only for files inside a vault (.obsidian ancestor)", function()
+	local loaded = function()
+		return require("lazy.core.config").plugins["obsidian.nvim"]._.loaded ~= nil
+	end
+	local root = vim.fn.tempname()
+	vim.fn.mkdir(root .. "/plain", "p")
+	vim.fn.mkdir(root .. "/vault/.obsidian", "p")
+	vim.fn.mkdir(root .. "/vault/notes", "p")
+	vim.cmd("edit " .. root .. "/plain/a.md")
+	assert(not loaded(), "obsidian.nvim loaded for markdown outside a vault")
+	vim.cmd("edit " .. root .. "/vault/notes/b.md")
+	assert(loaded(), "obsidian.nvim did not load inside a vault")
+	local ws = require("obsidian").get_client().current_workspace.root.filename
+	assert(ws == root .. "/vault", "workspace should be the vault root, got " .. tostring(ws))
+	vim.cmd("%bwipeout!")
+	vim.fn.delete(root, "rf")
+end)
+
 -- ── result ──────────────────────────────────────────────────────────────
 if #failures == 0 then
 	print("SMOKE-PASS")
