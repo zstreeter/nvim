@@ -10,9 +10,10 @@ refactors should use these names.
 - **LSP module** — `lua/config/lsp.lua` owns the seam: capabilities (computed
   once, blink-extended), diagnostics display, LspAttach keymaps, and
   `vim.lsp.enable()` over the server list. `lua/config/servers.lua` is its
-  data interface (server + tool names). `lsp/*.lua` are adapters: pure
-  settings tables, no `require`s. nvim-lspconfig is a data source only —
-  its bundled `lsp/` dir resolves servers with no local adapter.
+  data interface (server + tool names). `after/lsp/*.lua` are adapters: pure
+  settings tables, no `require`s, merged over nvim-lspconfig's bundled `lsp/`
+  configs (they must live in `after/`: a plain `lsp/` dir sorts before the
+  plugin on the rtp and is silently overridden).
 - **Keymap registry** (`lua/config/keys.lua`) — single source for which-key
   group labels and prefix ownership; errors at boot on duplicate prefixes.
   Plugin handlers stay in plugin files (lazy `keys={}` keeps lazy-loading);

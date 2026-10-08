@@ -2,7 +2,7 @@
 --   config/lsp.lua      enables lsp_servers via vim.lsp.enable()
 --   plugins/lsp/mason.lua installs both lists via mason-tool-installer
 -- Two vocabularies, deliberately: lsp_servers are LSP-client names (resolved
--- against this repo's lsp/*.lua, then nvim-lspconfig's bundled lsp/ dir);
+-- from nvim-lspconfig's bundled lsp/ dir, then this repo's after/lsp/*.lua on top);
 -- mason-tool-installer accepts those same names only because mason-lspconfig
 -- is installed to provide the name mapping. formatters_and_linters are mason
 -- package names. Formatters NOT listed here (gofmt, goimports, rustfmt) ship

@@ -24,9 +24,9 @@ if grep -n 'group = ' lua/plugins/which-key.lua lua/plugins/lang/quarto.lua >/de
 	echo "group labels outside config/keys.lua"; exit 1
 fi
 
-# structural: lsp/*.lua are pure data — no plugin requires
-if grep -rn 'require(' lsp/ >/dev/null 2>&1; then
-	echo "lsp/ must stay pure data:"; grep -rn 'require(' lsp/
+# structural: after/lsp/*.lua are pure data — no plugin requires
+if grep -rn 'require(' after/lsp/ >/dev/null 2>&1; then
+	echo "after/lsp/ must stay pure data:"; grep -rn 'require(' after/lsp/
 	exit 1
 fi
 
