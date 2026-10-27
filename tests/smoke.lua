@@ -857,6 +857,12 @@ check("obsidian: loads only for files inside a vault (.obsidian ancestor)", func
 	vim.fn.delete(root, "rf")
 end)
 
+check("lean: lean.nvim stays unloaded until a .lean file is opened", function()
+	local lean = require("lazy.core.config").plugins["lean.nvim"]
+	assert(lean, "lean.nvim spec missing")
+	assert(lean._.loaded == nil, "lean.nvim loaded at startup")
+end)
+
 -- ── result ──────────────────────────────────────────────────────────────
 if #failures == 0 then
 	print("SMOKE-PASS")
